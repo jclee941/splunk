@@ -208,3 +208,5 @@ See [`tests/README.md`](./tests/README.md) for the full validation harness.
 ## License
 
 Internal use. See repository owner for redistribution terms.
+
+<!-- LLM final probe 1777812018 -->
