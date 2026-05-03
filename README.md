@@ -208,3 +208,6 @@ See [`tests/README.md`](./tests/README.md) for the full validation harness.
 ## License
 
 Internal use. See repository owner for redistribution terms.
+
+
+<!-- LLM review probe 1777811213 — auto-removed after verification -->
