@@ -4,6 +4,38 @@
 
 **Splunk Security Alert System v2.0.4** - FortiGate security event monitoring with Slack notifications.
 
+> Component-level architecture showing data flow across system boundaries.
+
+```mermaid
+flowchart TB
+    subgraph Data_Sources
+        FG["FortiGate syslog"]
+    end
+    
+    subgraph Splunk_Platform
+        IDX["Splunk Index"]
+        SCH["Search Scheduler"]
+    end
+    
+    subgraph Security_Alert_App
+        MAC["Macros"]
+        ALT["Alert Definitions"]
+        STT["State Trackers"]
+        PYT["Python Scripts"]
+    end
+    
+    subgraph Notifications
+        SLK["Slack Webhook"]
+    end
+    
+    FG --> IDX
+    IDX --> SCH
+    SCH --> ALT
+    ALT --> MAC
+    ALT --> STT
+    ALT --> PYT
+    PYT --> SLK
+```
 ## Core Components
 
 ### 1. Alert Engine
@@ -29,13 +61,23 @@
 ## Architecture Patterns
 
 ### State Tracking Pattern (EMS)
-```
-Events → Current State → Compare with Previous → State Changed? → Alert + Update State
+```mermaid
+flowchart LR
+    E["Events"] --> CS["Current State"]
+    CS --> CP["Compare with Previous"]
+    CP --> SC{"State Changed?"}
+    SC -->|"Yes"| A["Alert + Update State"]
+    SC -->|"No"| SK["Skip"]
 ```
 
 ### Alert Workflow
-```
-SPL Search → Enrich → Deduplicate → State Compare → Format Message → Slack
+```mermaid
+flowchart LR
+    SS["SPL Search"] --> EN["Enrich"]
+    EN --> DD["Deduplicate"]
+    DD --> SC["State Compare"]
+    SC --> FM["Format Message"]
+    FM --> SL["Slack"]
 ```
 
 ## Key Technologies

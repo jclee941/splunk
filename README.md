@@ -36,8 +36,23 @@ splunk/
 ├── demo/                  # Demonstration assets
 ├── resume/                # Architecture deep-dives, API, troubleshooting
 ├── tests/                 # Validation scripts
-└── CLAUDE.md              # AI assistant guidance (full architecture reference)
 ```
+
+---
+## System Architecture
+
+> High-level data flow from FortiGate events to Slack notifications.
+
+```mermaid
+flowchart LR
+    FG["FortiGate Firewall"] -->|"syslog"| SP["Splunk Indexer"]
+    SP -->|"SPL Search"| AE["Alert Engine"]
+    AE -->|"Read/Write"| ST["State Trackers"]
+    AE -->|"Trigger"| NP["Notification Pipeline"]
+    NP -->|"Webhook"| SL["Slack"]
+```
+
+**Flow:** FortiGate syslog → Splunk index → Alert Engine (15 SPL searches) → State Trackers (11 CSV files) → Slack webhook.
 
 ---
 
@@ -113,6 +128,19 @@ See [`docs/QUICK-START.md`](./docs/QUICK-START.md) and [`docs/DEPLOYMENT.md`](./
 
 The core pattern that prevents duplicate notifications:
 
+> Visual flow of the EMS (Event-Metric-State) pattern.
+
+```mermaid
+flowchart TD
+    E["Real-time Events"] --> CS["Calculate Current State"]
+    CS --> PS["Load Previous State"]
+    PS --> SC{"State Changed?"}
+    SC -->|"Yes"| AL["Send Alert to Slack"]
+    SC -->|"No"| SK["Skip Notification"]
+    AL --> US["Update State"]
+    SK --> US
+```
+
 ```spl
 `fortigate_index` `logids_<category>`
 | eval current_state = if(condition, "FAIL", "OK")
@@ -130,7 +158,6 @@ The core pattern that prevents duplicate notifications:
 - Without `where state_changed=1` → Slack flooded every cron tick
 - Without `append=t` → CSV lock errors with concurrent alerts
 
-Full architectural rationale in [`CLAUDE.md`](./CLAUDE.md).
 
 ---
 
@@ -175,7 +202,6 @@ See [`tests/README.md`](./tests/README.md) for the full validation harness.
 
 | Document | Purpose |
 |---|---|
-| [`CLAUDE.md`](./CLAUDE.md) | Full architecture, SPL patterns, troubleshooting |
 | [`docs/QUICK-START.md`](./docs/QUICK-START.md) | 5-minute setup |
 | [`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md) | Production deployment guide |
 | [`docs/RELEASE-NOTES.md`](./docs/RELEASE-NOTES.md) | Version history |

@@ -39,6 +39,28 @@ security_alert/
     └── default.meta                   # 권한 설정
 ```
 
+> Physical deployment topology showing network boundaries and data flow.
+
+```mermaid
+flowchart TB
+    subgraph Network
+        FG["FortiGate Firewall"]
+    end
+    
+    subgraph Splunk_Cluster
+        IDX["Splunk Indexer"]
+        SH["Search Head"]
+    end
+    
+    subgraph External
+        SL["Slack Workspace"]
+    end
+    
+    FG -->|"UDP 514 / syslog"| IDX
+    IDX -->|"Search"| SH
+    SH -->|"HTTPS / webhook"| SL
+```
+
 ## Prerequisites
 
 - **Splunk Enterprise** 8.x 또는 9.x
@@ -494,4 +516,3 @@ rm -rf /opt/splunk/etc/apps/security_alert
 
 **Repository**: https://github.com/qws941/splunk.git
 **Maintainer**: NextTrade Security Team
-**Documentation**: See `CLAUDE.md` for development details
