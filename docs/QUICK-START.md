@@ -64,7 +64,6 @@ python3 -c "import sys; sys.path.insert(0, '../lib/python3'); import requests; p
 - **RELEASE-NOTES-v2.0.4.md** - Changes and features
 
 ### For Development
-- **CLAUDE.md** - Complete architecture
 
 ### For File Reference
 - **FILES-INDEX.md** - Navigate all files

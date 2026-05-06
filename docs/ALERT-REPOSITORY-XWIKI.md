@@ -958,7 +958,6 @@ index=_internal source=*splunkd.log outputlookup error
 
 ## 참고 문서
 
-- **CLAUDE.md** - 개발자 가이드 (영문)
 - **README.md** - 사용자 문서 (한국어)
 - **docs/DEPLOYMENT.md** - 배포 가이드 (한국어)
 - **docs/QUICK-START.md** - 빠른 시작 가이드 (한국어)

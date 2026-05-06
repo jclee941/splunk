@@ -30,14 +30,13 @@ Security Alert System v2.0.4는 FortiGate 보안 이벤트를 모니터링하고
 - **자동 경로 설정**: sys.path 자동 수정
 
 ### 4. 포괄적인 문서화
-- **CLAUDE.md**: 개발자를 위한 종합 가이드 (영문)
 - **DEPLOYMENT.md**: 상세 배포 가이드 (한국어)
 - **QUICK-START.md**: 5분 빠른 시작 가이드
 - **트러블슈팅**: 5가지 일반 문제 해결 가이드
 
 ### 5. 문서 구조 개선
 - 레거시 문서 아카이브 (`docs/archive/`)
-- CLAUDE.md 규칙 준수 (docs/ 디렉토리 구조)
+- **docs/**: 개발자 및 배포 종합 가이드
 - 깔끔한 루트 디렉토리
 
 ---
@@ -222,7 +221,6 @@ index=_internal source=*alert_actions.log action_name="slack"
 
 | Document | Purpose | Language |
 |----------|---------|----------|
-| **CLAUDE.md** | Development guide, architecture | English |
 | **security_alert/README.md** | User guide | Korean |
 | **docs/DEPLOYMENT.md** | Deployment guide | Korean |
 | **docs/QUICK-START.md** | 5-minute quick start | Korean |
@@ -254,7 +252,6 @@ v2.0.4는 v2.0.3과 완전히 호환됩니다. 상태 추적 파일 형식이 �
 **Repository**: https://github.com/qws941/splunk.git
 **GitLab**: https://gitlab.jclee.me/jclee/splunk
 **Maintainer**: NextTrade Security Team
-**Documentation**: See `CLAUDE.md` for development details
 
 ---
 
@@ -264,9 +261,9 @@ v2.0.4는 v2.0.3과 완전히 호환됩니다. 상태 추적 파일 형식이 �
 - ✅ Added Alert 018 (FMG Out of Sync)
 - ✅ Added `fmg_sync_state_tracker.csv`
 - ✅ Bundled Python dependencies (air-gapped support)
-- ✅ Comprehensive documentation (CLAUDE.md, DEPLOYMENT.md)
+- ✅ Comprehensive documentation (DEPLOYMENT.md, QUICK-START.md)
 - ✅ Archived 10 legacy documents
-- ✅ CLAUDE.md compliance (docs/ structure)
+- ✅ Clean docs/ structure (docs/ 디렉토리 구조)
 - ✅ Production-ready packaging
 
 ### v2.0.3 (2025-11-04)

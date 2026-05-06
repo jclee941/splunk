@@ -25,7 +25,7 @@ Reason: Superseded by security_alert-v2.0.4-production.tar.gz
 - README.md (archive README)
 - RELEASE-NOTES-v2.0.4.md
 
-Reason: Content integrated into CLAUDE.md and docs/DEPLOYMENT.md
+Reason: Content integrated into docs/DEPLOYMENT.md
 
 ### 3. Python Cache (8 directories, ~100+ files)
 - All __pycache__ directories
