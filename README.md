@@ -1,236 +1,57 @@
+```markdown
 # Splunk Security Alert System
 
 [![Version](https://img.shields.io/badge/version-2.0.4-blue.svg)](./security_alert/app.manifest)
 [![Splunk](https://img.shields.io/badge/Splunk-8.0%2B-orange.svg)](https://www.splunk.com/)
 [![Python](https://img.shields.io/badge/python-3.7%2B-green.svg)](https://www.python.org/)
-[![License](https://img.shields.io/badge/license-Internal-lightgrey.svg)](#)
+[![License](https://img.shields.io/badge/license-Internal-lightgrey.svg)](./LICENSE)
 
-> Production-ready Splunk app for **FortiGate security monitoring** with state-aware alerting and Slack integration.
+> FortiGate 방화벽 보안 이벤트를 실시간으로 감지하고, **EMS(Event-Metric-State) 패턴**을 통해 중복 없이 Slack으로 알림하는 프로덕션급 Splunk 앱입니다.
 
-FortiGate 방화벽의 보안 이벤트를 실시간 감지하고 **EMS(Event-Metric-State) 패턴**으로 중복 알림 없이 Slack으로 전송하는 Splunk 앱입니다.
+## 개요
 
----
+본 프로젝트는 FortiGate 방화벽에서 발생하는 다양한 보안 및 시스템 이벤트를 Splunk에서 수집·분석하여, 상태 변화가 실제로 발생했을 때만 Slack으로 알림을 전송하는 종합 모니터링 솔루션입니다.  
+SPL 중심의 아키텍처로 외부 처리 프로세스 없이 Splunk 내부 검색만으로 모든 로직을 처리하며, 폐쇄망(Air-Gapped) 환경에서도 번들된 Python 의존성으로 즉시 배포 가능합니다.
 
-## Highlights
+## 주요 기능
 
-- **15 Production Alerts** — VPN, HA, hardware, resource, brute-force, traffic, license, FMG sync
-- **Zero Duplicate Notifications** — State-tracking via 11 CSV lookups, alerts fire only on state change
-- **SPL-First Architecture** — All logic in Splunk searches, no external processing required
-- **Air-Gapped Ready** — All Python dependencies bundled (`requests`, `urllib3`, `certifi`, ...)
-- **Single-Line Slack Messages** — Optimized for mobile push notifications (≤200 chars)
-- **Macro-Based Configuration** — Index name, LogID groups, thresholds centralized
+- **15종 프로덕션 알림** — VPN, HA, 하드웨어, 리소스, 무차별 대입(Brute-force), 트래픽 급증, 라이선스, FMG 동기화 등
+- **중복 알림 제로** — 11개 CSV 기반 상태 추적(Lookup)으로 상태 변경 시에만 알림 발송
+- **EMS(Event-Metric-State) 패턴** — 이벤트 발생이 아닌 상태 전환(OK ↔ CRITICAL 등) 기반 알림
+- **SPL-First 아키텍처** — 모든 로직을 Splunk 검색으로 처리, 외부 연산 불필요
+- **폐쇄망 지원** — `requests`, `urllib3`, `certifi` 등 Python 의존성 전체 번들링
+- **모바일 푸시 최적화** — 200자 이내의 한 줄 Slack 메시지로 모바일 알림에 최적화
+- **매크로 기반 설정** — 인덱스명, LogID 그룹, 임계값을 중앙 매크로에서 일괄 관리
+- **Slack 통합** — 기본 제공되는 Custom Alert Action으로 즉시 연동
 
----
+## 설치 방법
 
-## Repository Layout
+### 요구 사항
 
-```
-splunk/
-├── security_alert/        # Splunk app (deployable)
-│   ├── default/           # All 15 alert definitions, macros, transforms
-│   ├── bin/               # Slack alert action (slack.py)
-│   ├── lib/python3/       # Bundled Python dependencies
-│   ├── lookups/           # State trackers + LogID map (6091 entries)
-│   └── metadata/
-├── docs/                  # Deployment, release notes, quick start
-├── demo/                  # Demonstration assets
-├── resume/                # Architecture deep-dives, API, troubleshooting
-├── tests/                 # Validation scripts
-```
+- Splunk Enterprise 8.0 이상
+- Python 3.7 이상 (Splunk 내장 Python 3 환경)
+- FortiGate Syslog 또는 HEC를 통한 데이터 수집
 
----
-## System Architecture
+### Splunk App 배포
 
-> High-level data flow from FortiGate events to Slack notifications.
+1. 저장소를 클론합니다.
+   ```bash
+   git clone <repository-url>
+   cd splunk-security-alert
+   ```
 
-```mermaid
-flowchart LR
-    FG["FortiGate Firewall"] -->|"syslog"| SP["Splunk Indexer"]
-    SP -->|"SPL Search"| AE["Alert Engine"]
-    AE -->|"Read/Write"| ST["State Trackers"]
-    AE -->|"Trigger"| NP["Notification Pipeline"]
-    NP -->|"Webhook"| SL["Slack"]
-```
+2. `security_alert` 디렉터리를 Splunk 앱 경로로 복사합니다.
+   ```bash
+   cp -r security_alert $SPLUNK_HOME/etc/apps/
+   ```
 
-**Flow:** FortiGate syslog → Splunk index → Alert Engine (15 SPL searches) → State Trackers (11 CSV files) → Slack webhook.
+3. Splunk를 재시작합니다.
+   ```bash
+   $SPLUNK_HOME/bin/splunk restart
+   ```
 
----
+4. Splunk 웹에서 **앱 관리** → `security_alert` → **권한 및 설정**을 확인합니다.
 
-## Quick Start
+5. **Lookup 파일** (`lookups/*.csv`)의 초기 상태를 확인하고, 필요시 경로 및 권한을 조정합니다.
 
-### 1. Install the app
-
-```bash
-# Copy to Splunk apps directory
-cd /opt/splunk/etc/apps/
-tar -xzf security_alert-v2.0.4-production.tar.gz
-chown -R splunk:splunk security_alert/
-
-# Restart Splunk
-/opt/splunk/bin/splunk restart
-```
-
-### 2. Configure Slack webhook (REQUIRED)
-
-```bash
-mkdir -p security_alert/local
-cat > security_alert/local/alert_actions.conf <<'EOF'
-[slack]
-param.webhook_url = https://hooks.slack.com/services/YOUR/WEBHOOK/URL
-EOF
-chmod 600 security_alert/local/alert_actions.conf
-```
-
-### 3. Override FortiGate index (optional)
-
-```ini
-# security_alert/local/macros.conf
-[fortigate_index]
-definition = index=your_firewall_index
-```
-
-See [`docs/QUICK-START.md`](./docs/QUICK-START.md) and [`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md) for full setup.
-
----
-
-## Alert Catalog (15 alerts)
-
-### Binary State (4) — alerts on UP↔DOWN transitions
-
-| Alert | Detects | Severity |
-|---|---|---|
-| `002_VPN_Tunnel_Down/Up` | VPN tunnel state change | Critical |
-| `007_Hardware_Failure/Restored` | PSU / fan / disk failures | Critical |
-| `008_HA_State_Change` | HA primary/secondary role swap | High |
-| `012_Interface_Down/Up` | Network interface state | Medium-High |
-
-### Threshold-Based (6) — alerts when crossing baseline / static threshold
-
-| Alert | Threshold | State |
-|---|---|---|
-| `006_CPU_Memory_Anomaly` | ±20% deviation from 24h baseline | ABNORMAL |
-| `010_Resource_Limit` | ≥75% utilization | EXCEEDED |
-| `011_Admin_Login_Failed` | ≥3 failures / 10min | ATTACK |
-| `013_SSL_VPN_Brute_Force` | ≥5 failures / 10min | ATTACK |
-| `015_Abnormal_Traffic_Spike` | 3× baseline traffic | SPIKE |
-| `017_License_Expiry_Warning` | ≤30 days to expiry | WARNING |
-
-### Event-Based (5) — fire on event with suppression window
-
-- `001_Config_Change` (10min suppress)
-- `016_System_Reboot` (30min suppress)
-- `018_FMG_Out_Of_Sync` (15min suppress)
-- (additional event-based alerts in `default/savedsearches.conf`)
-
----
-
-## EMS State-Tracking Pattern
-
-The core pattern that prevents duplicate notifications:
-
-> Visual flow of the EMS (Event-Metric-State) pattern.
-
-```mermaid
-flowchart TD
-    E["Real-time Events"] --> CS["Calculate Current State"]
-    CS --> PS["Load Previous State"]
-    PS --> SC{"State Changed?"}
-    SC -->|"Yes"| AL["Send Alert to Slack"]
-    SC -->|"No"| SK["Skip Notification"]
-    AL --> US["Update State"]
-    SK --> US
-```
-
-```spl
-`fortigate_index` `logids_<category>`
-| eval current_state = if(condition, "FAIL", "OK")
-| stats latest(*) as * by device, component
-| join type=left device component [
-    | inputlookup state_tracker | rename state as previous_state
-]
-| eval state_changed = if(isnull(previous_state) OR previous_state!=current_state, 1, 0)
-| where state_changed=1                          ◄── only fire on transition
-| eval state = current_state
-| outputlookup append=t state_tracker            ◄── append=t for atomic write
-```
-
-**Why it matters:**
-- Without `where state_changed=1` → Slack flooded every cron tick
-- Without `append=t` → CSV lock errors with concurrent alerts
-
-
----
-
-## State Trackers (11 CSV files)
-
-Located in `security_alert/lookups/`:
-
-```
-vpn_state_tracker.csv          hardware_state_tracker.csv
-ha_state_tracker.csv           interface_state_tracker.csv
-cpu_memory_state_tracker.csv   resource_state_tracker.csv
-admin_login_state_tracker.csv  vpn_brute_force_state_tracker.csv
-traffic_spike_state_tracker.csv license_state_tracker.csv
-fmg_sync_state_tracker.csv
-```
-
-Plus the master reference: `fortigate_logid_notification_map.csv` (6091 LogID → category/severity mappings).
-
----
-
-## Validation
-
-```bash
-# Validate config syntax
-splunk btool savedsearches list --debug
-
-# Test alert query directly
-splunk search "`fortigate_index` `logids_vpn_tunnel` earliest=-1h | head 10"
-
-# Inspect scheduler execution
-splunk search 'index=_internal source=*scheduler.log savedsearch_name="*Alert*" | stats count by status'
-
-# Inspect Slack delivery
-splunk search 'index=_internal source=*alert_actions.log action_name="slack" | stats count by action_status'
-```
-
-See [`tests/README.md`](./tests/README.md) for the full validation harness.
-
----
-
-## Documentation
-
-| Document | Purpose |
-|---|---|
-| [`docs/QUICK-START.md`](./docs/QUICK-START.md) | 5-minute setup |
-| [`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md) | Production deployment guide |
-| [`docs/RELEASE-NOTES.md`](./docs/RELEASE-NOTES.md) | Version history |
-| [`docs/ALERT-REPOSITORY-XWIKI.md`](./docs/ALERT-REPOSITORY-XWIKI.md) | XWiki alert documentation |
-| [`resume/ARCHITECTURE.md`](./resume/ARCHITECTURE.md) | System architecture |
-| [`resume/API.md`](./resume/API.md) | Alert API reference |
-| [`resume/TROUBLESHOOTING.md`](./resume/TROUBLESHOOTING.md) | Common issues + fixes |
-
----
-
-## Security Notes
-
-- `local/alert_actions.conf` (Slack webhook URL) **must** be `chmod 600`
-- `bin/fortigate_auto_response.py` is **disabled** but contains placeholder credentials — review before production
-- `.gitignore` excludes `local/*`, `*.log`, `__pycache__/`, and runtime state CSVs
-
----
-
-## Version
-
-**v2.0.4** (2025-11-07)
-
-- EMS state tracking applied to all 15 alerts (11 trackers)
-- Official Slack Alert Action integration (plain-text format)
-- All 15 alerts production-enabled (incl. Alert 018 FMG sync)
-- Bundled Python dependencies for air-gapped deployments
-
----
-
-## License
-
-Internal use. See repository owner for redistribution terms.
+### Slack 연
