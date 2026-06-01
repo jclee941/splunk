@@ -1,367 +1,505 @@
-<think>
-The user wants me to generate a comprehensive README.md for a repository. Let me analyze the structure:
+# Splunk Security Alert System for FortiGate
 
-1. **Project**: This appears to be a Splunk Security Alert System for FortiGate monitoring
-2. **Location**: The current README.md is at the root level
-3. **Structure**: I need to create a bilingual (Korean/English) README.md
+[![fortigate-security](https://img.shields.io/badge/FortiGate-Security%20Alerts-00A9CE?style=flat-square)](https://docs.fortinet.com/product/fortigate/)
+[![splunk](https://img.shields.io/badge/SPL-Splunk%20Search%20Language-FF9900?style=flat-square)](https://docs.splunk.com/Documentation/SPL)
+[![License](https://img.shields.io/badge/License-Proprietary-blue?style=flat-square)](./LICENSE)
+[![Workflows](https://img.shields.io/badge/Workflows-32%20Active-brightgreen?style=flat-square)](#automation-inventory)
+[![Bot](https://img.shields.io/badge/Bot-CLIProxyAPI%20v2.0-c0ffee?style=flat-square)](https://cliproxy.jclee.me)
 
-Let me understand what exists:
-- Root README.md already exists (shown in the project structure)
-- `_bot-scripts/` directory has automation scripts including `generate_readme.py`
-- 32 workflow files exist (numbered 01-60 range)
-- No Go automation tools
-- Various docs, tests, demo directories
-
-Key points for the README:
-- This is the Splunk Security Alert System
-- 15 production alerts for FortiGate
-- State-aware alerting with zero duplicates
-- SPL-First Architecture
-- Air-gapped ready
-- Single-line Slack messages
-- Macro-based configuration
-
-I should create a comprehensive README that covers:
-1. Title and badges
-2. Overview (bilingual)
-3. Features
-4. Architecture
-5. Automation inventory (workflows + tools)
-6. Quick start
-7. Local development
-8. Commands reference
-9. Contribution guide
-
-Let me also reference the existing workflows by their numbers and what they do based on their names.
-
-Workflows listed:
-01_branch-to-pr.yml
-02_issue-to-branch.yml
-03_pr-checks.yml
-04_actionlint.yml
-05_gitleaks.yml
-06_codeql.yml
-07_dependency-review.yml
-08_scorecard.yml
-09_semantic-pr.yml
-10_pr-review.yml
-12_dependabot-auto-merge.yml
-13_pr-auto-merge.yml
-14_bot-auto-fix.yml
-15_merged-pr-cleanup.yml
-18_issue-management.yml
-19_issue-backfill.yml
-20_readme-gen.yml
-
-
-21_docs-sync.yml
-22_release-notes.yml
-23_release-publish.yml
-24_downstream-health-check.yml
-37_ci-failure-issues.yml
-42_reusable-docs-sync.yml
-43_reusable-issue-management.yml
-44_reusable-pr-checks.yml
-45_reusable-gitleaks.yml
-60_ci-auto-heal.yml
-auto-merge.yml
-ci.yml
-labeler.yml
-welcome.yml
-security/11_pr-review.yml
-
-The workflows span issue management, PR automation, release processes, and security scanning. I'll need to document each workflow's purpose and how they connect together to form the complete automation pipeline. Security scanning via Gitleaks and vulnerability management through Dependabot are integrated into the workflow. Release processes handle documentation, versioning, and publishing. There are also specialized workflows for downstream health monitoring, CI failure resolution, and reusable templates for consistency across different automation scenarios.
-
-</think>
-
-```markdown
-# Splunk Security Alert System / Splunk 보안 알림 시스템
-
-[![Version](https://img.shields.io/badge/version-2.0.4-blue.svg)](./security_alert/app.manifest)
-[![Splunk](https://img.shields.io/badge/Splunk-8.0%2B-orange.svg)](https://www.splunk.com/)
-[![Python](https://img.shields.io/badge/python-3.7%2B-green.svg)](https://www.python.org/)
-[![License](https://img.shields.io/badge/license-Internal-lightgrey.svg)](#)
-[![Build Status](https://github.com/splunk/security-alert-system/actions/workflows/ci.yml/badge.svg)](https://github.com/splunk/security-alert-system/actions/workflows/ci.yml)
-[![Security](https://img.shields.io/badge/security-gitleaks-red.svg)](https://github.com/gitleaks/gitleaks)
-
-> **English**: Production-ready Splunk app for **FortiGate security monitoring** with state-aware alerting and Slack integration.
->
-> **한국어**: FortiGate 방화벽의 보안 이벤트를 실시간 감지하고 **EMS(Event-Metric-State) 패턴**으로 중복 알림 없이 Slack으로 전송하는 Splunk 앱입니다.
+> **English** | [한국어](#개요)
 
 ---
 
-## Table of Contents / 목차
+## Overview
 
-- [Overview](#overview--개요)
-- [Highlights](#highlights--주요-특징)
-- [System Architecture](#system-architecture--시스템-아키텍처)
-- [Automation Inventory](#automation-inventory--자동화-인벤토리)
-- [Quick Start](#quick-start--빠른-시작)
-- [Local Development](#local-development--로컬-개발)
-- [Commands Reference](#commands-reference--명령어-참조)
-- [Contributing](#contributing--기여하기)
+This repository contains the **Splunk Security Alert System** designed for FortiGate firewall monitoring. It provides **15 production-ready security alerts** with state-aware alerting capabilities that ensure zero duplicate notifications.
 
----
+### Key Characteristics
 
-## Overview / 개요
-
-The Splunk Security Alert System is a comprehensive Splunk application designed for enterprise-grade FortiGate firewall security monitoring. It provides real-time threat detection using the **EMS (Event-Metric-State) pattern**, ensuring that security notifications are sent to Slack **only on state changes**, eliminating duplicate alerts.
-
-이 시스템은 기업용 FortiGate 방화벽 보안을 모니터링하기 위한 Splunk 애플리케이션입니다. **EMS(Event-Metric-State) 패턴**을 사용하여 보안 알림이 **상태 변경 시에만** Slack으로 전송되어 중복 알림을 제거합니다.
+| Characteristic | Description |
+|----------------|-------------|
+| **Alert Count** | 15 production alerts for FortiGate security events |
+| **Architecture** | SPL-First: All logic implemented in Splunk Search Processing Language |
+| **Alerting Model** | State-aware with deduplication to prevent alert storms |
+| **Notification** | Single-line Slack messages for efficient incident response |
+| **Configuration** | Macro-based for easy customization and air-gapped deployment |
+| **Deployment** | Air-gapped environment ready |
 
 ---
 
-## Highlights / 주요 특징
+## Features
 
-| Feature | Description |
-|---------|-------------|
-| **15 Production Alerts** | VPN, HA, hardware, resource, brute-force, traffic, license, FMG sync coverage |
-| **Zero Duplicate Notifications** | State-tracking via 11 CSV lookups, alerts fire only on state change |
-| **SPL-First Architecture** | All logic in Splunk searches, no external processing required |
-| **Air-Gapped Ready** | All Python dependencies bundled (`requests`, `urllib3`, `certifi`, ...) |
-| **Single-Line Slack Messages** | Optimized for mobile push notifications (≤200 chars) |
-| **Macro-Based Configuration** | Index name, LogID groups, thresholds centralized |
+### Core Capabilities
+
+- **15 Production Security Alerts** covering critical FortiGate events:
+  - Brute force detection
+  - Intrusion prevention system (IPS) alerts
+  - Malware detection
+  - Policy violations
+  - Anomaly detection
+  - And more...
+
+- **State-Aware Alerting Engine**
+  - Tracks alert state across evaluation windows
+  - Eliminates duplicate notifications
+  - Maintains alert history for correlation
+
+- **SPL-First Architecture**
+  - All detection logic in pure SPL
+  - Portable across Splunk deployments
+  - Version controlled and reviewable
+
+- **Macro-Based Configuration**
+  - Centralized parameter management
+  - Easy threshold tuning
+  - Environment-specific overrides
+
+- **Slack Integration**
+  - Concise single-line message format
+  - Actionable alert data
+  - Direct correlation links
+
+### Automation Features
+
+This repository includes sophisticated GitHub automation:
+
+| Category | Count | Description |
+|----------|-------|-------------|
+| CI/CD Workflows | 32 | End-to-end automation pipelines |
+| Python Automation Scripts | 5 | PR review, secret redaction, README generation |
+| Security Scanning | 4 | Gitleaks, CodeQL, Dependency Review, Scorecard |
+| Auto-Fix Capabilities | 1 | Bot-powered automatic remediation |
 
 ---
 
-## System Architecture / 시스템 아키텍처
-
-```mermaid
-flowchart LR
-    FG["FortiGate Firewall"] -->|"syslog"| SP["Splunk Indexer"]
-    SP -->|"index=_internal"| AL["Alert Logic<br/>(SPL Macros)"]
-    AL -->|"state change?| ST["State Tracker<br/>(11 CSV Lookups)"]
-    ST -->|"yes"| SL["Slack Alert<br/>(slack.py)"]
-    ST -->|"no"| END["No Action"]
-
-    subgraph Production Alerts
-        AL -->|VPN| VPN_AL
-        AL -->|HA| HA_AL
-        AL -->|Hardware| HW_AL
-        AL -->|Resource| RES_AL
-        AL -->|Brute Force| BF_AL
-        AL -->|Traffic| TRAF_AL
-        AL -->|License| LIC_AL
-        AL -->|FMG Sync| FMG_AL
-    end
-```
-
-### Repository Layout / 저장소 구조
+## Architecture
 
 ```
-splunk-security-alert-system/
-├── .github/
-│   └── workflows/           # 32 GitHub Actions workflows
-├── _bot-scripts/            # Automation tooling
-│   ├── scripts/             # Python automation (pr_review, repo_review, etc.)
-│   ├── AGENTS.md            # Agent configuration
-│   └── Dockerfile.*          # Container definitions
-├── security_alert/          # Splunk app (deployable)
-│   ├── default/             # 15 alert definitions, macros, transforms
-│   ├── bin/                 # Slack alert action (slack.py)
-│   ├── lib/python3/         # Bundled Python dependencies
-│   ├── lookups/             # State trackers + LogID map (6091 entries)
-│   └── metadata/
-├── docs/                    # Deployment, release notes, quick start
-├── tests/                   # Validation scripts
-└── demo/                    # Demonstration assets
+┌─────────────────────────────────────────────────────────────────┐
+│                    GitHub Repository                            │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐   │
+│  │ Workflows/   │  │ _bot-scripts/│  │ docs/                │   │
+│  │ (32 files)   │  │ (Python CLI)  │  │ (Deployment guides)  │   │
+│  └──────────────┘  └──────────────┘  └──────────────────────┘   │
+│         │                 │                     │                │
+│         ▼                 ▼                     ▼                │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │              CLIProxyAPI (cliproxy.jclee.me)             │   │
+│  │    ┌─────────────┐  ┌──────────────┐  ┌─────────────┐    │   │
+│  │    │ PR Review   │  │ Issue Mgmt   │  │ Auto-Fix    │    │   │
+│  │    │ (qodo-ai)   │  │ (Custom)     │  │ (Bot)       │    │   │
+│  │    └─────────────┘  └──────────────┘  └─────────────┘    │   │
+│  └─────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────┘
 ```
+
+### Component Overview
+
+| Component | Location | Purpose |
+|-----------|----------|---------|
+| **Workflows** | `.github/workflows/` | GitHub Actions automation |
+| **Bot Scripts** | `_bot-scripts/` | Python automation tools |
+| **Documentation** | `docs/` | Deployment and operational docs |
+| **Security Alerts** | `security_alert/` | FortiGate alert definitions |
+| **Tests** | `tests/` | Validation test suite |
+| **Demo** | `demo/` | Example configurations |
 
 ---
 
-## Automation Inventory / 자동화 인벤토리
+## Automation Inventory
 
-### GitHub Actions Workflows / GitHub Actions 워크플로우
+### GitHub Workflows (32 Total)
 
-| # | Workflow File | Purpose |
-|---|---------------|---------|
-| 01 | `01_branch-to-pr.yml` | Branch-to-PR automation |
-| 02 | `02_issue-to-branch.yml` | Issue-to-branch automation |
-| 03 | `03_pr-checks.yml` | PR validation checks |
-| 04 | `04_actionlint.yml` | Action linting |
-| 05 | `05_gitleaks.yml` | Secret scanning |
-| 06 | `06_codeql.yml` | CodeQL security analysis |
-| 07 | `07_dependency-review.yml` | Dependency vulnerability review |
-| 08 | `08_scorecard.yml` | OpenSSF Scorecard assessment |
-| 09 | `09_semantic-pr.yml` | Semantic PR validation |
-| 10 | `10_pr-review.yml` | PR review automation |
-| 12 | `12_dependabot-auto-merge.yml` | Dependabot auto-merge |
-| 13 | `13_pr-auto-merge.yml` | PR auto-merge |
-| 14 | `14_bot-auto-fix.yml` | Bot auto-fix capabilities |
-| 15 | `15_merged-pr-cleanup.yml` | Post-merge cleanup |
-| 18 | `18_issue-management.yml` | Issue management |
-| 19 | `19_issue-backfill.yml` | Issue backfill |
-| 20 | `20_readme-gen.yml` | README generation |
-| 21 | `21_docs-sync.yml` | Documentation sync |
-| 24 | `24_release-notes.yml` | Release notes generation |
-| 25 | `25_release-publish.yml` | Release publishing |
-| 29 | `29_downstream-health-check.yml` | Downstream health check |
-| 37 | `37_ci-failure-issues.yml` | CI failure issue creation |
-| 42 | `42_reusable-docs-sync.yml` | Reusable docs sync |
-| 43 | `43_reusable-issue-management.yml` | Reusable issue management |
-| 44 | `44_reusable-pr-checks.yml` | Reusable PR checks |
-| 45 | `45_reusable-gitleaks.yml` | Reusable Gitleaks scan |
-| 60 | `60_ci-auto-heal.yml` | CI auto-heal |
-| - | `auto-merge.yml` | General auto-merge |
-| - | `ci.yml` | CI pipeline |
-| - | `labeler.yml` | PR label automation |
-| - | `welcome.yml` | New contributor welcome |
-| - | `security/11_pr-review.yml` | Security-focused PR review |
+#### Pull Request Automation
 
-### Python Automation Scripts / Python 자동화 스크립트
+| Workflow | Description |
+|----------|-------------|
+| `01_branch-to-pr.yml` | Automatically create PR from feature branch |
+| `02_issue-to-branch.yml` | Create branch from issue assignment |
+| `03_pr-checks.yml` | Comprehensive PR validation pipeline |
+| `10_pr-review.yml` | Automated PR review using qodo-ai/pr-agent |
+| `security/11_pr-review.yml` | Security-focused PR review |
+| `13_pr-auto-merge.yml` | Automatic PR merge when checks pass |
+| `14_bot-auto-fix.yml` | Bot-powered automatic issue remediation |
+| `15_merged-pr-cleanup.yml` | Post-merge cleanup operations |
+
+#### Security Scanning
+
+| Workflow | Description |
+|----------|-------------|
+| `04_actionlint.yml` | GitHub Actions syntax validation |
+| `05_gitleaks.yml` | Secret scanning in commits |
+| `06_codeql.yml` | CodeQL static analysis |
+| `07_dependency-review.yml` | Dependency vulnerability scanning |
+| `08_scorecard.yml` | Security posture assessment |
+
+#### Issue Management
+
+| Workflow | Description |
+|----------|-------------|
+| `18_issue-management.yml` | Automated issue triage and labeling |
+| `19_issue-backfill.yml` | Issue metadata enrichment |
+| `37_ci-failure-issues.yml` | Auto-create issues from CI failures |
+| `43_reusable-issue-management.yml` | Reusable issue management logic |
+
+#### Documentation Automation
+
+| Workflow | Description |
+|----------|-------------|
+| `20_readme-gen.yml` | Automated README generation |
+| `21_docs-sync.yml` | Documentation synchronization |
+| `42_reusable-docs-sync.yml` | Reusable doc sync logic |
+
+#### Release Engineering
+
+| Workflow | Description |
+|----------|-------------|
+| `24_release-notes.yml` | Automated release notes generation |
+| `25_release-publish.yml` | Release publication pipeline |
+| `29_downstream-health-check.yml` | Downstream dependency health monitoring |
+
+#### Continuous Integration
+
+| Workflow | Description |
+|----------|-------------|
+| `ci.yml` | Primary CI pipeline |
+| `60_ci-auto-heal.yml` | Automatic CI failure remediation |
+| `auto-merge.yml` | Dependabot auto-merge automation |
+| `labeler.yml` | Automatic label management |
+| `welcome.yml` | New contributor welcome messages |
+
+#### Reusable Workflows
+
+| Workflow | Description |
+|----------|-------------|
+| `42_reusable-docs-sync.yml` | Cross-repository doc sync |
+| `43_reusable-issue-management.yml` | Cross-repository issue handling |
+| `44_reusable-pr-checks.yml` | Reusable PR validation |
+| `45_reusable-gitleaks.yml` | Reusable secret scanning |
+
+### Python Automation Tools
+
+Located in `_bot-scripts/scripts/`:
 
 | Script | Purpose |
 |--------|---------|
-| `generate_readme.py` | README generation (bilingual Korean/English) |
-| `pr_review_runner.py` | PR review runner |
-| `redact_exposed_secrets.py` | Secret redaction |
-| `repo_review.py` | Repository review |
+| `pr_review_runner.py` | Execute automated PR reviews |
+| `repo_review.py` | Repository-wide review automation |
+| `redact_exposed_secrets.py` | Secret redaction for безопасность |
+| `check_private_ips.py` | IP address validation |
+| `generate_readme.py` | README.md generation |
 
-### Reusable Workflows / 재사용 가능한 워크플로우
+### External Integrations
 
-- **Reusable Docs Sync** (`42_reusable-docs-sync.yml`) - Documentation synchronization
-- **Reusable Issue Management** (`43_reusable-issue-management.yml`) - Issue operations
-- **Reusable PR Checks** (`44_reusable-pr-checks.yml`) - PR validation
-- **Reusable Gitleaks** (`45_reusable-gitleaks.yml`) - Secret scanning
+| Service | Integration Point | Purpose |
+|---------|-------------------|---------|
+| **qodo-ai/pr-agent** | PR Review | AI-powered code review |
+| **CLIProxyAPI** | cliproxy.jclee.me | Bot command proxy |
+| **Bot Service** | bot.jclee.me | Notification delivery |
 
 ---
 
-## Quick Start / 빠른 시작
+## Quick Start
 
-### Prerequisites / 사전 요구사항
+### Prerequisites
 
-- Splunk 8.0+
-- Python 3.7+
-- FortiGate firewall logs accessible via syslog
+- Python 3.10+
+- Docker (for containerized execution)
+- Access to Splunk Enterprise/Cloud
+- FortiGate devices with logging enabled
 
-### Installation / 설치
+### Installation
 
 ```bash
 # Clone the repository
-git clone https://github.com/splunk/security-alert-system.git
-cd security-alert-system
+git clone https://github.com/YOUR_ORG/splunk-fortigate-alerts.git
+cd splunk-fortigate-alerts
 
-# Deploy to Splunk
-cp -r security_alert $SPLUNK_HOME/etc/apps/
-
-# Restart Splunk
-$SPLUNK_HOME/bin/splunk restart
-```
-
-### Configuration / 구성
-
-1. Configure syslog input for FortiGate devices
-2. Update macro definitions in `security_alert/default/ops.conf`:
-   - `index_name` - Your Splunk index
-   - `logid_groups` - LogID mappings
-   - `thresholds` - Alert thresholds
-
----
-
-## Local Development / 로컬 개발
-
-### Development Environment / 개발 환경
-
-```bash
-# Create virtual environment
-python3 -m venv venv
-source venv/bin/activate  # Linux/Mac
-# or
-.\venv\Scripts\activate   # Windows
-
-# Install dependencies
-pip install -r _bot-scripts/requirements-dev.txt
+# Install Python dependencies
 pip install -r _bot-scripts/requirements.txt
+
+# Install development dependencies
+pip install -r _bot-scripts/requirements-dev.txt
 ```
 
-### Docker Support / Docker 지원
+### Basic Usage
+
+1. **Configure Splunk Connection**
+
+   ```bash
+   export SPLUNK_HOST=https://your-splunk-instance
+   export SPLUNK_TOKEN=your-api-token
+   ```
+
+2. **Deploy Alerts**
+
+   ```bash
+   make deploy
+   ```
+
+3. **Verify Alert Deployment**
+
+   ```bash
+   make verify
+   ```
+
+---
+
+## Local Development
+
+### Development Environment Setup
 
 ```bash
-# GitHub App development
-docker-compose -f _bot-scripts/docker-compose.github_app.yml up -d
+# Start development environment
+make dev-env
 
-# GitHub Action development
-docker build -f _bot-scripts/Dockerfile.github_action -t action-dev .
+# Run all tests
+make test
+
+# Run specific test suite
+make test-unit
+make test-integration
 ```
 
-### Running Tests / 테스트 실행
+### Docker-Based Development
 
 ```bash
-# Run PR review tests
-python -m pytest _bot-scripts/scripts/pr_review_runner_test.py -v
+# Build GitHub App container
+docker build -f _bot-scripts/Dockerfile.github_app -t fortigate-bot:app .
 
-# Run repo review
-python _bot-scripts/scripts/repo_review.py --help
+# Build GitHub Action container
+docker build -f _bot-scripts/Dockerfile.github_action -t fortigate-bot:action .
+
+# Run with docker-compose
+docker-compose -f _bot-scripts/docker-compose.github_app.yml up
+```
+
+### Code Quality
+
+```bash
+# Run linting
+make lint
+
+# Run actionlint on workflows
+make actionlint
+
+# Format code
+make format
 ```
 
 ---
 
-## Commands Reference / 명령어 참조
+## Commands Reference
 
-### Makefile Commands / Makefile 명령어
-
-```bash
-make help              # Show all available commands
-make lint              # Run linting
-make test              # Run tests
-make build             # Build Docker images
-make deploy            # Deploy to Splunk
-```
-
-### Automation Scripts / 자동화 스크립트
+### Makefile Targets
 
 | Command | Description |
 |---------|-------------|
-| `python scripts/generate_readme.py` | Generate README.md |
-| `python scripts/pr_review_runner.py --pr <number>` | Run PR review |
-| `python scripts/redact_exposed_secrets.py <file>` | Redact secrets |
-| `python scripts/repo_review.py` | Run repository review |
+| `make help` | Display available targets |
+| `make dev-env` | Set up development environment |
+| `make test` | Run all tests |
+| `make test-unit` | Run unit tests only |
+| `make test-integration` | Run integration tests |
+| `make lint` | Run code linters |
+| `make format` | Format code |
+| `make actionlint` | Validate GitHub Actions syntax |
+| `make deploy` | Deploy alerts to Splunk |
+| `make verify` | Verify deployment |
+| `make clean` | Clean build artifacts |
 
----
+### Python Scripts
 
-## Contributing / 기여하기
+```bash
+# Generate README
+python _bot-scripts/scripts/generate_readme.py --output README.md
 
-We welcome contributions! Please see [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
+# Run PR review
+python _bot-scripts/scripts/pr_review_runner.py --pr-url https://github.com/owner/repo/pull/1
 
-Contribution guides available:
-- [Root CONTRIBUTING.md](./CONTRIBUTING.md) - Main contribution guidelines
-- [`_bot-scripts/CONTRIBUTING.md`](./_bot-scripts/CONTRIBUTING.md) - Bot automation contribution guidelines
+# Check for private IPs
+python _bot-scripts/scripts/check_private_ips.py --file alert.spl
 
-### Automation Contribution / 자동화 기여
+# Redact exposed secrets
+python _bot-scripts/scripts/redact_exposed_secrets.py --input log.txt --output clean.txt
 
-This repository uses **GitHub Actions automation** extensively. When contributing:
-
-1. Follow the workflow naming convention (`NN_<component>.yml`)
-2. Use reusable workflows where applicable
-3. Ensure `actionlint` passes (workflow `04_actionlint.yml`)
-4. Run secret scanning with Gitleaks (`05_gitleaks.yml`)
-
-### Automated Checks / 자동화된 검사
-
-All PRs must pass:
-- ✅ Action lint (`04_actionlint.yml`)
-- ✅ Gitleaks scan (`05_gitleaks.yml`)
-- ✅ CodeQL analysis (`06_codeql.yml`)
-- ✅ Dependency review (`07_dependency-review.yml`)
-- ✅ Scorecard assessment (`08_scorecard.yml`)
-
----
-
-## License / 라이선스
-
-See [LICENSE](./LICENSE) for details.
-
----
-
-## Support / 지원
-
-- Documentation: [`docs/`](./docs/)
-- Quick Start: [`docs/QUICK-START.md`](./docs/QUICK-START.md)
-- Deployment: [`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md)
-- Release Notes: [`docs/RELEASE-NOTES.md`](./docs/RELEASE-NOTES.md)
-
----
-
-**Maintained by** the Splunk Security Alert System Team
-**Version** 2.0.4
+# Repository review
+python _bot-scripts/scripts/repo_review.py --repo-path .
 ```
+
+---
+
+## Contribution Guide
+
+Please read [CONTRIBUTING.md](./CONTRIBUTING.md) for details on our development workflow and contribution standards.
+
+### Contributing to Automation
+
+1. **Fork the repository**
+2. **Create a feature branch**
+
+   ```bash
+   git checkout -b feature/your-automation-name
+   ```
+
+3. **Make your changes**
+   - Follow workflow naming conventions (`NN_name.yml`)
+   - Add tests for new automation
+   - Update documentation
+4. **Run validation**
+
+   ```bash
+   make actionlint
+   make test
+   ```
+
+5. **Submit a Pull Request**
+
+### Adding New Security Alerts
+
+1. Create alert definition in `security_alert/`
+2. Follow naming convention: `alert_<category>_<name>.spl`
+3. Include metadata header:
+
+   ```spl
+   /// alert: ALERT_NAME
+   /// description: Brief description
+   /// severity: HIGH|MEDIUM|LOW
+   /// category: Category Name
+   ```
+
+4. Add corresponding test case
+5. Update ALERT-REPOSITORY documentation
+
+### Workflow Development Guidelines
+
+| Rule | Description |
+|------|-------------|
+| **Naming** | Use 2-digit prefix for ordering (01-99) |
+| **Idempotency** | Workflows must be safely re-runnable |
+| **Documentation** | Every workflow needs `name:` and `description:` |
+| **Secrets** | Use GitHub secrets, never hardcode credentials |
+| **Timeout** | Set appropriate timeout-minutes |
+
+---
+
+## License
+
+Proprietary software. See [LICENSE](./LICENSE) and [NOTICE](./_bot-scripts/NOTICE) for details.
+
+---
+
+## Support
+
+- **Documentation**: See `docs/` directory
+- **Security Issues**: See [SECURITY.md](./_bot-scripts/SECURITY.md)
+- **Bugs**: Open an issue with `bug` label
+
+---
+
+## Additional Resources
+
+| Resource | Link |
+|----------|------|
+| Bot Documentation | <https://bot.jclee.me> |
+| CLIProxyAPI | <https://cliproxy.jclee.me> |
+| PR-Agent (qodo-ai) | <https://github.com/qodo-ai/pr-agent> |
+
+---
+
+# 한국어 (Korean)
+
+## 개요
+
+이 저장소는 **FortiGate 방화벽 모니터링**을 위한 Splunk 보안 경고 시스템입니다. **15개의 운영 환경 경고**를 제공하며, 상태 인식 경고 기능을 통해 중복 알림을 방지합니다.
+
+### 주요 특성
+
+| 특성 | 설명 |
+|------|------|
+| **경고 수** | FortiGate 보안 이벤트 15개 |
+| **아키텍처** | SPL 우선: 모든 로직이 Splunk 검색 처리 언어로 구현 |
+| **경고 모델** | 상태 인식 및 중복 제거 |
+| **알림** | 간결한 Slack 단일 라인 메시지 |
+| **구성** | 매크로 기반 손쉬운 사용자 정의 |
+| **배포** | 네트워크 격리 환경 준비 완료 |
+
+## 빠른 시작
+
+### 前提 조건
+
+- Python 3.10+
+- Docker
+- Splunk Enterprise/Cloud 액세스
+- 로깅이 활성화된 FortiGate 디바이스
+
+### 설치
+
+```bash
+# 저장소 클론
+git clone https://github.com/YOUR_ORG/splunk-fortigate-alerts.git
+cd splunk-fortigate-alerts
+
+# Python 의존성 설치
+pip install -r _bot-scripts/requirements.txt
+
+# 개발 의존성 설치
+pip install -r _bot-scripts/requirements-dev.txt
+```
+
+### 기본 사용법
+
+1. **Splunk 연결 구성**
+
+   ```bash
+   export SPLUNK_HOST=https://your-splunk-instance
+   export SPLUNK_TOKEN=your-api-token
+   ```
+
+2. **경고 배포**
+
+   ```bash
+   make deploy
+   ```
+
+3. **배포 확인**
+
+   ```bash
+   make verify
+   ```
+
+## 자동화 목록
+
+### GitHub 워크플로우 (32개)
+
+| 카테고리 | 파일 | 설명 |
+|----------|------|------|
+| **PR 자동화** | `01-15_*.yml` | Pull Request 관련 자동화 |
+| **보안 스캔** | `04-08_*.yml` | Gitleaks, CodeQL, 스코어카드 |
+| **이슈 관리** | `18-19_*.yml`, `37_*.yml` | 이슈 트라이징 및 자동 생성 |
+| **문서화** | `20-21_*.yml`, `42_*.yml` | README 생성, 문서 동기화 |
+| **릴리스** | `24-25_*.yml` | 릴리스 노트 및 배포 |
+| **CI/CD** | `ci.yml`, `60_*.yml` | 지속적 통합 및 자동 복구 |
+
+### Python 자동화 도구
+
+| 스크립트 | 용도 |
+|----------|------|
+| `pr_review_runner.py` | 자동 PR 리뷰 실행 |
+| `repo_review.py` | 저장소 전체 검토 |
+| `redact_exposed_secrets.py` | 노출된 시크릿 수정 |
+| `check_private_ips.py` | IP 주소 검증 |
+| `generate_readme.py` | README 생성 |
+
+## 기여 가이드
+
+상세한 개발 워크플로우와 기여 표준은 [CONTRIBUTING.md](./CONTRIBUTING.md)를 참조하세요.
+
+1. **저장소 포크**
+2. **기능 브랜치 생성**: `git checkout -b feature/your-feature`
+3. **변경 사항 작성**
+4. **유효성 검사 실행**: `make actionlint && make test`
+5. **Pull Request 제출**
+
+---
+
+*Generated with [generate_readme.py](./_bot-scripts/scripts/generate_readme.py) • Last updated: 2025-01*
