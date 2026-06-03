@@ -45,168 +45,168 @@ This repository contains the **CLIProxyAPI v2.0 GitHub Automation Bot** — a co
 ### Automated Code Review | 자동화 코드 리뷰
 
 - **PR Agent Integration**: AI-powered code reviews using `qodo-ai/pr-agent`
-- **Automated Review Comments**: AI-generated feedback on PR changes
-- **PR Review Workflow**: `10_pr-review.yml` orchestrates review automation
+- **Automated Review Workflows**: `03_pr-checks.yml`, `10_pr-review.yml`, `security/11_pr-review.yml`
+- **Custom Review Scripts**: `pr_review_runner.py` for orchestrating review workflows
 
 ### Issue Management | 이슈 관리
 
-- **Automated Classification**: AI-driven issue categorization (`91_issue-classification.yml`)
-- **Branch Creation**: Auto-create branches from issues (`02_issue-to-branch.yml`)
-- **Backfill Automation**: Fill missing issue data (`19_issue-backfill.yml`)
-- **GitHub App Integration**: CLIProxyAPI v2.0 for issue handling
+- **Automated Branch Creation**: `01_branch-to-pr.yml`, `02_issue-to-branch.yml`
+- **Issue Lifecycle Automation**: `18_issue-management.yml`, `43_reusable-issue-management.yml`
+- **Issue Classification**: `91_issue-classification.yml` for automatic labeling and triage
+- **CI Failure Issues**: `37_ci-failure-issues.yml` creates issues for failed CI runs
 
 ### Pull Request Automation | 풀 리퀘스트 자동화
 
-- **Auto-Merge**: Automatic PR merging on approval (`13_pr-auto-merge.yml`)
-- **Dependabot Integration**: Auto-merge dependency updates (`12_dependabot-auto-merge.yml`)
-- **PR Checks**: Comprehensive validation (`03_pr-checks.yml`)
-- **Semantic PR**: Enforce semantic versioning in PR titles (`09_semantic-pr.yml`)
-- **Merge Cleanup**: Automatic branch cleanup after merge (`15_merged-pr-cleanup.yml`)
+- **Auto-Merge**: `12_dependabot-auto-merge.yml`, `13_pr-auto-merge.yml`, `auto-merge.yml`
+- **PR Cleanup**: `15_merged-pr-cleanup.yml` handles branch cleanup after merge
+- **Semantic PR Enforcement**: `09_semantic-pr.yml` ensures conventional commit format
+- **Auto-Fix**: `14_bot-auto-fix.yml` for automated fix workflows
 
-### Security Automation | 보안 자동화
+### Security Scanning | 보안 스캔
 
-- **Gitleaks Scan**: Secret detection in commits (`05_gitleaks.yml`)
-- **CodeQL Analysis**: Static security analysis (`06_codeql.yml`)
-- **Dependency Review**: Vulnerability scanning (`07_dependency-review.yml`)
-- **Scorecard**: OpenSSF security scoring (`08_scorecard.yml`)
-- **Action Lint**: Workflow validation (`04_actionlint.yml`)
-- **Private IP Detection**: Scan for hardcoded IPs (`scripts/check_private_ips.py`)
+- **Secret Detection**: `05_gitleaks.yml`, `45_reusable-gitleaks.yml`
+- **Code Analysis**: `06_codeql.yml`
+- **Dependency Review**: `07_dependency-review.yml`
+- **Scorecard**: `08_scorecard.yml` for security score tracking
+- **Workflow Validation**: `04_actionlint.yml`
 
-### Documentation Automation | 문서 자동화
+### Documentation | 문서화
 
-- **README Generation**: Auto-generate README from structure (`20_readme-gen.yml`)
-- **Docs Sync**: Synchronize documentation (`21_docs-sync.yml`, `42_reusable-docs-sync.yml`)
-- **Release Notes**: Automated release note generation (`24_release-notes.yml`)
+- **README Generation**: `20_readme-gen.yml` automated README updates
+- **Docs Sync**: `21_docs-sync.yml`, `42_reusable-docs-sync.yml`
+- **Release Notes**: `24_release-notes.yml`, `25_release-publish.yml`
 
-### Release Automation | 릴리스 자동화
+### Release Management | 릴리스 관리
 
-- **Release Publishing**: Publish releases automatically (`25_release-publish.yml`)
-- **Version Management**: Semantic version enforcement
-- **Downstream Health Check**: Validate downstream compatibility (`29_downstream-health-check.yml`)
+- **Release Publishing**: `25_release-publish.yml`
+- **Downstream Health Check**: `29_downstream-health-check.yml`
+- **Version Management**: Semantic versioning with automated triggers
 
 ### CI/CD Automation | CI/CD 자동화
 
-- **CI Failure Issues**: Auto-create issues for CI failures (`37_ci-failure-issues.yml`)
-- **CI Auto-Heal**: Self-healing CI pipeline (`60_ci-auto-heal.yml`)
-- **Health Monitoring**: Monitor repository health
-
-### Bot Auto-Fix | 봇 자동 수정
-
-- **Self-Fixing PRs**: Bot can automatically fix issues (`14_bot-auto-fix.yml`)
-- **Automated Remediation**: Apply fixes without human intervention
+- **CI Pipeline**: `ci.yml`
+- **Auto-Heal**: `60_ci-auto-heal.yml` for automatic CI recovery
+- **Label Automation**: `labeler.yml`
 
 ---
 
 ## Architecture | 아키텍처
 
 ```mermaid
-flowchart TD
-    subgraph GitHub["GitHub"]
-        GHA["GitHub Actions<br/>33 Workflows"]
-        GHE["GitHub App<br/>CLIProxyAPI v2.0"]
+flowchart TB
+    subgraph GitHub["GitHub Platform"]
+        direction TB
+        Events["GitHub Events<br/>(push, PR, issues, releases)"]
+        Workflows["33 GitHub Actions<br/>Workflows"]
     end
-    
-    subgraph Automation["Automation Layer"]
-        PRA["PR Agent<br/>qodo-ai/pr-agent"]
-        CLI["CLIProxyAPI<br/>&lt;homelab-host&gt;:8317<br/>cliproxy.jclee.me"]
-        SCR["Python Scripts<br/>scripts/"]
+
+    subgraph AutomationLayer["Automation Layer"]
+        direction TB
+        PythonScripts["Python Automation<br/>(scripts/)"]
+        PRAgent["qodo-ai/pr-agent<br/>Code Review AI"]
+        CLIAutomation["CLIProxyAPI<br/>cliproxy.jclee.me"]
     end
-    
-    subgraph Monitoring["Monitoring & Logging"]
+
+    subgraph ExternalServices["External Services"]
+        direction TB
         ELK["ELK Stack<br/>&lt;homelab-elk&gt;"]
+        BotAPI["Bot API<br/>bot.jclee.me"]
+        ProxyAPI["CLI Proxy API<br/>cliproxy.jclee.me"]
     end
-    
-    subgraph External["External Services"]
-        BOT["bot.jclee.me"]
-        PYPI["PyPI<br/>urllib3"]
-    end
-    
-    GHA --> PRA
-    GHA --> CLI
-    GHE --> SCR
-    SCR --> ELK
-    CLI --> BOT
-    GHA --> ELK
-    GHE --> ELK
+
+    Events --> Workflows
+    Workflows --> PythonScripts
+    PythonScripts --> PRAgent
+    PythonScripts --> ProxyAPI
+    ProxyAPI --> BotAPI
+    PythonScripts --> ELK
+
+    style GitHub fill:#24292f,color:#fff
+    style AutomationLayer fill:#0366d6,color:#fff
+    style ExternalServices fill:#28a745,color:#fff
 ```
 
-### Data Flow | 데이터 흐름
+### System Flow | 시스템 흐름
 
-1. **Event Trigger**: GitHub event (PR, issue, push) triggers workflow
-2. **Workflow Orchestration**: GitHub Actions executes workflow steps
-3. **Automation Execution**: Python scripts / PR Agent process the event
-4. **External Communication**: CLIProxyAPI communicates with external bot service
-5. **Logging**: All actions logged to ELK stack for monitoring
+1. **Event Trigger**: GitHub event (push, PR, issue) triggers workflow
+2. **Workflow Execution**: GitHub Actions runs workflow with Python automation
+3. **Script Processing**: Python scripts in `scripts/` perform core logic
+4. **External Integration**: Scripts call CLIProxyAPI (`cliproxy.jclee.me`) and PR Agent
+5. **Logging**: All operations logged to ELK stack (`<homelab-elk>`)
+6. **Result Reporting**: Workflows update PRs, issues, or create follow-up actions
 
 ---
 
 ## Automation Inventory | 자동화 인벤토리
 
-### GitHub Actions Workflows | GitHub Actions 워크플로우
+### Workflow Files | 워크플로우 파일
 
-| File | Trigger | Purpose |
+| # | Workflow File 워크플로우 파일 | Purpose 목적 |
 |---|---|---|
-| `01_branch-to-pr.yml` | push | Create PR from branch |
-| `02_issue-to-branch.yml` | issues | Create branch from issue |
-| `03_pr-checks.yml` | pull_request | Run PR validation checks |
-| `04_actionlint.yml` | workflow_dispatch, push | Lint GitHub Actions workflows |
-| `05_gitleaks.yml` | push, pull_request | Scan for secrets in code |
-| `06_codeql.yml` | push, pull_request | Run CodeQL security analysis |
-| `07_dependency-review.yml` | pull_request | Review dependency changes |
-| `08_scorecard.yml` | push | OpenSSF security scorecard |
-| `09_semantic-pr.yml` | pull_request | Enforce semantic PR titles |
-| `10_pr-review.yml` | pull_request | AI-powered PR review |
-| `12_dependabot-auto-merge.yml` | pull_request | Auto-merge Dependabot PRs |
-| `13_pr-auto-merge.yml` | pull_request | Auto-merge approved PRs |
-| `14_bot-auto-fix.yml` | pull_request | Bot self-fixing automation |
-| `15_merged-pr-cleanup.yml` | pull_request | Clean up merged branches |
-| `18_issue-management.yml` | issues, pull_request | Manage issue lifecycle |
-| `19_issue-backfill.yml` | workflow_dispatch | Fill missing issue data |
-| `20_readme-gen.yml` | push, workflow_dispatch | Auto-generate README |
-| `21_docs-sync.yml` | push | Sync documentation |
-| `24_release-notes.yml` | push | Generate release notes |
-| `25_release-publish.yml` | release | Publish releases |
-| `29_downstream-health-check.yml` | workflow_dispatch | Check downstream health |
-| `37_ci-failure-issues.yml` | workflow_run | Create issues for CI failures |
-| `42_reusable-docs-sync.yml` | workflow_call | Reusable docs sync workflow |
-| `43_reusable-issue-management.yml` | workflow_call | Reusable issue management |
-| `44_reusable-pr-checks.yml` | workflow_call | Reusable PR checks |
-| `45_reusable-gitleaks.yml` | workflow_call | Reusable gitleaks scan |
-| `60_ci-auto-heal.yml` | workflow_run | Auto-heal broken CI |
-| `91_issue-classification.yml` | issues | Classify issues with AI |
-| `auto-merge.yml` | pull_request | General auto-merge |
-| `ci.yml` | push | Primary CI workflow |
-| `labeler.yml` | pull_request | Auto-label PRs |
-| `welcome.yml` | pull_request | Welcome new contributors |
-| `security/11_pr-review.yml` | pull_request | Security-focused PR review |
+| 1 | `01_branch-to-pr.yml` | Create PR branches from branch events |
+| 2 | `02_issue-to-branch.yml` | Create feature branches from issues |
+| 3 | `03_pr-checks.yml` | Run PR validation checks |
+| 4 | `04_actionlint.yml` | Lint GitHub Actions workflow files |
+| 5 | `05_gitleaks.yml` | Scan for secrets and credentials |
+| 6 | `06_codeql.yml` | Run CodeQL security analysis |
+| 7 | `07_dependency-review.yml` | Review dependency changes |
+| 8 | `08_scorecard.yml` | OpenSSF Scorecard security assessment |
+| 9 | `09_semantic-pr.yml` | Enforce semantic PR titles |
+| 10 | `10_pr-review.yml` | AI-powered PR review |
+| 12 | `12_dependabot-auto-merge.yml` | Auto-merge Dependabot PRs |
+| 13 | `13_pr-auto-merge.yml` | Auto-merge regular PRs |
+| 14 | `14_bot-auto-fix.yml` | Automated bot fix workflows |
+| 15 | `15_merged-pr-cleanup.yml` | Clean up after PR merge |
+| 18 | `18_issue-management.yml` | Manage issue lifecycle |
+| 19 | `19_issue-backfill.yml` | Backfill issue data |
+| 20 | `20_readme-gen.yml` | Generate/update README |
+| 21 | `21_docs-sync.yml` | Sync documentation |
+| 24 | `24_release-notes.yml` | Generate release notes |
+| 25 | `25_release-publish.yml` | Publish releases |
+| 29 | `29_downstream-health-check.yml` | Check downstream repo health |
+| 37 | `37_ci-failure-issues.yml` | Create issues for CI failures |
+| 42 | `42_reusable-docs-sync.yml` | Reusable docs sync workflow |
+| 43 | `43_reusable-issue-management.yml` | Reusable issue management |
+| 44 | `44_reusable-pr-checks.yml` | Reusable PR checks |
+| 45 | `45_reusable-gitleaks.yml` | Reusable gitleaks scan |
+| 60 | `60_ci-auto-heal.yml` | Auto-heal CI failures |
+| 91 | `91_issue-classification.yml` | Classify issues automatically |
+| - | `auto-merge.yml` | Generic auto-merge workflow |
+| - | `ci.yml` | Main CI pipeline |
+| - | `labeler.yml` | Auto-label PRs and issues |
+| - | `welcome.yml` | Welcome message for contributors |
+| - | `security/11_pr-review.yml` | Security-focused PR review |
 
 ### Python Automation Scripts | Python 자동화 스크립트
 
-| Script | Purpose |
+| Script 스크립트 | Purpose 목적 |
 |---|---|
-| `scripts/pr_review_runner.py` | Run AI-powered PR reviews |
-| `scripts/repo_review.py` | Review repository health |
-| `scripts/generate_readme.py` | Generate README from structure |
-| `scripts/check_private_ips.py` | Scan for hardcoded private IPs |
-| `scripts/check_hardcode_scan_patterns_test.py` | Test hardcode scanning patterns |
+| `scripts/pr_review_runner.py` | Orchestrate PR review workflow |
+| `scripts/repo_review.py` | Repository-level reviews |
+| `scripts/generate_readme.py` | README generation |
+| `scripts/issue_classification_workflow_test.py` | Issue classification testing |
 | `scripts/check_workflow_scripts.py` | Validate workflow scripts |
-| `scripts/issue_classification_workflow_test.py` | Test issue classification |
-| `scripts/issue_classifier_js_test.py` | JavaScript issue classifier tests |
-| `scripts/pr_review_runner_test.py` | Test PR review runner |
-| `scripts/readme_mermaid_test.py` | Validate Mermaid diagrams |
+| `scripts/check_private_ips.py` | Scan for hardcoded IPs |
+| `scripts/check_hardcode_scan_patterns_test.py` | Scan pattern validation |
 | `scripts/redact_exposed_secrets.py` | Redact exposed secrets |
-| `scripts/check_workflow_scripts_test.py` | Test workflow script checker |
+| `scripts/pr_review_runner_test.py` | PR review runner tests |
+
+### Reusable Workflows | 재사용 가능한 워크플로우
+
+- `42_reusable-docs-sync.yml` — Documentation synchronization template
+- `43_reusable-issue-management.yml` — Issue management template
+- `44_reusable-pr-checks.yml` — PR validation checks template
+- `45_reusable-gitleaks.yml` — Gitleaks scanning template
 
 ---
 
 ## Quick Start | 빠른 시작
 
-### Prerequisites | 전제 조건
+### Prerequisites | 사전 요구사항
 
 - Python 3.x
-- Git
-- Docker (for containerized development)
 - GitHub account with repository access
+- Access to CLIProxyAPI endpoint (`cliproxy.jclee.me`)
 
 ### Installation | 설치
 
@@ -217,236 +217,204 @@ cd CLIProxyAPI
 
 # Install dependencies
 pip install -r _bot-scripts/requirements.txt
-# or for development
-pip install -r _bot-scripts/requirements-dev.txt
 ```
 
-### Initial Setup | 초기 설정
+### Basic Usage | 기본 사용법
 
-1. **GitHub App Installation**: Install CLIProxyAPI v2.0 GitHub App on target repositories
-2. **Environment Variables**: Configure required secrets in GitHub repository settings
-3. **Workflow Enable**: Enable desired workflows in repository settings
+```bash
+# Run PR review
+python scripts/pr_review_runner.py --pr-url https://github.com/owner/repo/pull/123
+
+# Generate README
+python scripts/generate_readme.py
+
+# Check for hardcoded private IPs
+python scripts/check_private_ips.py --path ./ --strict
+
+# Scan workflow scripts
+python scripts/check_workflow_scripts.py --directory ./.github/workflows
+```
 
 ---
 
 ## Local Development | 로컬 개발
 
-### Environment Setup | 환경 설정
+### Development Environment Setup | 개발 환경 설정
 
 ```bash
-# Create virtual environment (recommended)
-python3 -m venv venv
-source venv/bin/activate  # Linux/macOS
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # Linux/Mac
 # or
-venv\Scripts\activate     # Windows
+venv\Scripts\activate  # Windows
 
-# Install dependencies
-pip install -e _bot-scripts/
+# Install dev dependencies
 pip install -r _bot-scripts/requirements-dev.txt
+```
+
+### Running Tests | 테스트 실행
+
+```bash
+# Run all tests
+make test
+
+# Run specific test files
+python -m pytest scripts/pr_review_runner_test.py -v
+python -m pytest scripts/check_private_ips_test.py -v
+python -m pytest scripts/check_workflow_scripts_test.py -v
 ```
 
 ### Docker Development | Docker 개발
 
 ```bash
-# Build GitHub Action image
-docker build -f _bot-scripts/Dockerfile.github_action -t cli-proxy-action .
-
 # Build GitHub App image
 docker build -f _bot-scripts/Dockerfile.github_app -t cli-proxy-app .
+
+# Build GitHub Action image
+docker build -f _bot-scripts/Dockerfile.github_action -t cli-proxy-action .
 
 # Run with docker-compose
 docker-compose -f _bot-scripts/docker-compose.github_app.yml up
 ```
 
-### Testing | 테스트
+### Local Workflow Testing | 로컬 워크플로우 테스트
 
 ```bash
-# Run all tests
-pytest tests/
+# Validate workflow syntax
+actionlint -format style ./.github/workflows/*.yml
 
-# Run specific test file
-pytest tests/ -v
-
-# Run with coverage
-pytest --cov=_bot-scripts tests/
-
-# Run script-specific tests
-python -m pytest _bot-scripts/scripts/check_private_ips_test.py
-python -m pytest _bot-scripts/scripts/check_hardcode_scan_patterns_test.py
-python -m pytest _bot-scripts/scripts/check_workflow_scripts_test.py
-python -m pytest _bot-scripts/scripts/pr_review_runner_test.py
-python -m pytest _bot-scripts/scripts/readme_mermaid_test.py
-python -m pytest _bot-scripts/scripts/issue_classification_workflow_test.py
-```
-
-### Local CI Simulation | 로컬 CI 시뮬레이션
-
-```bash
-# Simulate PR checks locally
+# Test workflow locally (act required)
 act -l  # List available workflows
-act -W .github/workflows/03_pr-checks.yml -v
-
-# Simulate PR review
-act -W .github/workflows/10_pr-review.yml -v
+act -W 01_branch-to-pr.yml  # Run specific workflow
 ```
 
 ---
 
 ## Commands Reference | 명령어 참조
 
-### Make Commands | Make 명령어
+### Makefile Commands | Makefile 명령어
 
 ```bash
-make help              # Show available make targets
-make lint             # Run linting
-make test             # Run tests
-make build            # Build Docker images
-make clean            # Clean build artifacts
+make help          # Show available commands
+make install       # Install dependencies
+make test          # Run test suite
+make lint          # Run linting
+make format        # Format code
+make docker-build  # Build Docker images
+make clean         # Clean build artifacts
 ```
 
 ### Python Scripts | Python 스크립트
 
-```bash
-# Generate README
-python _bot-scripts/scripts/generate_readme.py
+| Command 명령어 | Description 설명 |
+|---|---|
+| `python scripts/pr_review_runner.py --pr-url <url>` | Run PR review for a specific PR |
+| `python scripts/pr_review_runner.py --batch` | Run batch PR review |
+| `python scripts/generate_readme.py` | Generate README documentation |
+| `python scripts/generate_readme.py --dry-run` | Test README generation without writing |
+| `python scripts/repo_review.py --repo <owner/repo>` | Run repository review |
+| `python scripts/check_private_ips.py --path <dir>` | Scan for hardcoded private IPs |
+| `python scripts/check_private_ips.py --strict` | Enable strict IP detection |
+| `python scripts/check_workflow_scripts.py --directory <dir>` | Validate workflow scripts |
+| `python scripts/redact_exposed_secrets.py --input <file>` | Redact secrets from files |
+| `python scripts/issue_classification_workflow_test.py` | Test issue classification |
 
-# Check for private IPs
-python _bot-scripts/scripts/check_private_ips.py --path .
-
-# Redact exposed secrets
-python _bot-scripts/scripts/redact_exposed_secrets.py --input secrets.txt
-
-# Run PR review
-python _bot-scripts/scripts/pr_review_runner.py --pr-url https://github.com/owner/repo/pull/123
-
-# Repo review
-python _bot-scripts/scripts/repo_review.py --repo owner/repo
-
-# Check workflow scripts
-python _bot-scripts/scripts/check_workflow_scripts.py --workflow-dir .github/workflows
-```
-
-### GitHub Actions Workflows | GitHub Actions 워크플로우
-
-#### PR Workflows | PR 워크플로우
+### GitHub Actions Local Testing | GitHub Actions 로컬 테스트
 
 ```bash
-# Trigger PR checks manually
-gh workflow run 03_pr-checks.yml -f pr_url=https://github.com/owner/repo/pull/123
+# Install act
+brew install act  # macOS
+# or
+curl -s https://raw.githubusercontent.com/nektos/act/master/install.sh | sh
 
-# Trigger PR review manually
-gh workflow run 10_pr-review.yml -f pr_url=https://github.com/owner/repo/pull/123
+# Run workflow locally
+act -W ./.github/workflows/10_pr-review.yml -e event_payload.json
 
-# Trigger auto-merge
-gh workflow run 13_pr-auto-merge.yml -f pr_url=https://github.com/owner/repo/pull/123
-```
-
-#### Issue Workflows | 이슈 워크플로우
-
-```bash
-# Trigger issue classification
-gh workflow run 91_issue-classification.yml -f issue_number=123
-
-# Trigger issue backfill
-gh workflow run 19_issue-backfill.yml -f issue_number=123
-```
-
-#### Documentation Workflows | 문서 워크플로우
-
-```bash
-# Trigger README generation
-gh workflow run 20_readme-gen.yml
-
-# Trigger docs sync
-gh workflow run 21_docs-sync.yml
-```
-
-#### Release Workflows | 릴리스 워크플로우
-
-```bash
-# Trigger release notes generation
-gh workflow run 24_release-notes.yml -f version=1.0.0
-
-# Trigger release publish
-gh workflow run 25_release-publish.yml -f tag=v1.0.0
+# Run with specific event
+act push -W ./.github/workflows/03_pr-checks.yml
 ```
 
 ---
 
 ## Contribution Guide | 기여 가이드
 
-### Getting Started | 시작하기
+### Workflow Addition Process | 워크플로우 추가 프로세스
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+1. **Create Workflow File**: Add new workflow in `.github/workflows/` with numeric prefix
+2. **Follow Naming Convention**: Use `<priority>_<descriptive-name>.yml` format
+3. **Add to README**: Update this README with new workflow in appropriate table
+4. **Test Locally**: Validate with `actionlint` and `act`
+5. **Update Documentation**: Add usage docs in `docs/` if needed
 
-### Development Standards | 개발 표준
+### Code Style Guidelines | 코드 스타일 가이드라인
 
-- **Code Style**: Follow PEP 8 guidelines
-- **Type Hints**: Use type hints for all Python functions
-- **Documentation**: Document all public functions and classes
-- **Testing**: Write tests for new functionality (minimum 80% coverage)
-- **Linting**: Ensure code passes all linting checks
-
-### Commit Message Format | 커밋 메시지 형식
-
-```
-<type>(<scope>): <description>
-
-[optional body]
-
-[optional footer]
-```
-
-**Types**: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
+- Follow PEP 8 for Python code
+- Use type hints where applicable
+- Add docstrings to all public functions
+- Include inline comments for complex logic
 
 ### Pull Request Process | 풀 리퀘스트 프로세스
 
-1. Ensure all tests pass locally
-2. Update documentation if needed
-3. Follow the commit message format
-4. Request review from maintainers
-5. Address all review comments
-6. Squash commits if necessary
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit changes with semantic messages
+4. Run tests (`make test`)
+5. Push to branch (`git push origin feature/amazing-feature`)
+6. Open a Pull Request with detailed description
+7. Wait for review and address feedback
 
-### Workflow Development | 워크플로우 개발
+### Testing Requirements | 테스트 요구사항
 
-When adding new workflows:
+- All new scripts must have corresponding `*_test.py` files
+- Maintain >80% code coverage for core automation scripts
+- All workflow files must pass `actionlint` validation
 
-1. Use appropriate numeric prefix (e.g., `50_new-workflow.yml`)
-2. Follow naming conventions in `workflows/`
-3. Include `name:` field for display
-4. Add to this README's automation inventory
-5. Add tests in `tests/`
-6. Update `_bot-scripts/scripts/AGENTS.md` if agent-related
+### Documentation Updates | 문서 업데이트
 
-### Security Considerations | 보안 고려사항
+- Update README.md when adding new workflows or scripts
+- Add examples for new automation features
+- Keep docs/ folder synchronized with feature changes
 
-- Never commit secrets or credentials
-- Use GitHub Secrets for sensitive data
-- Run `check_private_ips.py` before committing
-- Run `gitleaks` scan before submitting PR
-- Follow secure coding practices
+---
 
-### Resources | 리소스
+## Repository Structure | 저장소 구조
 
-- [CONTRIBUTING.md](./CONTRIBUTING.md) - Contribution guidelines
-- [`_bot-scripts/CONTRIBUTING.md`](./_bot-scripts/CONTRIBUTING.md) - Bot contribution guidelines
-- [`_bot-scripts/AGENTS.md`](./_bot-scripts/AGENTS.md) - Agent documentation
-- [`docs/QUICK-START.md`](./docs/QUICK-START.md) - Quick start guide
-- [`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md) - Deployment instructions
+```
+CLIProxyAPI/
+├── .github/
+│   └── workflows/          # GitHub Actions workflows (33 files)
+├── _bot-scripts/           # Automation bot source code
+│   ├── scripts/            # Python automation scripts
+│   ├── docs/               # Documentation
+│   ├── tests/              # Test suite
+│   ├── demo/               # Demo files
+│   ├── security_alert/     # Security alert app
+│   └── [config files]      # Docker, pyproject, requirements
+├── docs/                   # Project documentation
+│   ├── QUICK-START.md
+│   ├── DEPLOYMENT.md
+│   └── ...
+├── tests/                  # Integration tests
+├── demo/                   # Demo and examples
+└── README.md               # This file
+```
 
 ---
 
 ## License | 라이선스
 
-Copyright (c) 2024 CLIProxyAPI. All rights reserved.
+See [LICENSE](./LICENSE) file for details.
 
-See [LICENSE](./LICENSE) and [`_bot-scripts/LICENSE`](./_bot-scripts/LICENSE) for details.
+CLIProxyAPI v2.0 — Proprietary License
 
 ---
 
-> Generated by **CLIProxyAPI v2.0** | [bot.jclee.me](https://bot.jclee.me) | [cliproxy.jclee.me](https://cliproxy.jclee.me)
+## Contact | 연락처
+
+- **Documentation**: [CLIProxyAPI Docs](https://cliproxy.jclee.me)
+- **Bot Endpoint**: [bot.jclee.me](https://bot.jclee.me)
+- **PR Agent**: [qodo-ai/pr-agent](https://github.com/qodo-ai/pr-agent)
+
+---
+
+*Generated by CLIProxyAPI v2.0 README Generator*
