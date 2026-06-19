@@ -92,13 +92,13 @@ flowchart TB
 
     subgraph "Workflows | 워크플로우"
         PR_WORKFLOWS["PR Workflows<br/>01_branch-to-pr.yml<br/>03_pr-checks.yml<br/>10_pr-review.yml<br/>13_pr-auto-merge.yml<br/>14_bot-auto-fix.yml"]
-        ISSUE_WORKFLOWS["Issue Workflows<br/>02_issue-to-branch.yml<br/>18_issue-management.yml<br/>19_issue-backfill.yml<br/>91_issue-classification.yml"]
+        ISSUE_WORKFLOWS["Issue Workflows<br/>02_issue-to-branch.yml<br/>jclee-bot App issue-management<br/>19_issue-backfill.yml<br/>91_issue-classification.yml"]
         SECURITY_WORKFLOWS["Security Workflows<br/>04_actionlint.yml<br/>05_gitleaks.yml<br/>06_codeql.yml<br/>07_dependency-review.yml<br/>08_scorecard.yml"]
         DOC_WORKFLOWS["Docs Workflows<br/>20_readme-gen.yml<br/>21_docs-sync.yml<br/>42_reusable-docs-sync.yml"]
         RELEASE_WORKFLOWS["Release Workflows<br/>24_release-notes.yml<br/>25_release-publish.yml<br/>29_downstream-health-check.yml"]
         CI_WORKFLOWS["CI Workflows<br/>60_ci-auto-heal.yml<br/>37_ci-failure-issues.yml"]
         MERGE_WORKFLOWS["Merge Workflows<br/>15_merged-pr-cleanup.yml"]
-        SYNC_WORKFLOWS["Sync Workflows<br/>43_reusable-issue-management.yml<br/>44_reusable-pr-checks.yml<br/>45_reusable-gitleaks.yml"]
+        SYNC_WORKFLOWS["Sync Workflows<br/>jclee-bot App issue-management<br/>44_reusable-pr-checks.yml<br/>45_reusable-gitleaks.yml"]
     end
 
     subgraph "Automation Layer | 자동화 레이어"
@@ -151,7 +151,7 @@ flowchart TB
 | 13 | `13_pr-auto-merge.yml` | PR auto-merge | PR |
 | 14 | `14_bot-auto-fix.yml` | Bot-initiated auto-fix | PR |
 | 15 | `15_merged-pr-cleanup.yml` | Post-merge cleanup | PR |
-| 18 | `18_issue-management.yml` | Issue management | Issue |
+| 18 | `jclee-bot App issue-management` | Issue management | Issue |
 | 19 | `19_issue-backfill.yml` | Issue metadata backfill | Issue |
 | 20 | `20_readme-gen.yml` | README generation | Docs |
 | 21 | `21_docs-sync.yml` | Documentation sync | Docs |
@@ -160,7 +160,7 @@ flowchart TB
 | 29 | `29_downstream-health-check.yml` | Downstream health monitoring | Release |
 | 37 | `37_ci-failure-issues.yml` | CI failure issue creation | CI |
 | 42 | `42_reusable-docs-sync.yml` | Reusable docs sync workflow | Docs |
-| 43 | `43_reusable-issue-management.yml` | Reusable issue management | Issue |
+| 43 | `jclee-bot App issue-management` | Reusable issue management | Issue |
 | 44 | `44_reusable-pr-checks.yml` | Reusable PR checks | PR |
 | 45 | `45_reusable-gitleaks.yml` | Reusable Gitleaks scan | Security |
 | 60 | `60_ci-auto-heal.yml` | CI auto-healing | CI |
