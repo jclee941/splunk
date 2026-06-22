@@ -20,75 +20,124 @@
 
 - [Overview | 개요](#overview--%EA%B0%9C%EC%9A%94)
 - [Features | 주요 기능](#features--%EC%A3%BC%EC%9A%94-%EA%B8%B0%EB%8A%A5)
-- [Repository Structure | 저장소 구조](#repository-structure--%EC%A0%80%EC%9E%A5%EC%86%8C-%EA%B5%AC%EC%A1%B0)
 - [Architecture | 아키텍처](#architecture--%EC%95%84%ED%82%A4%ED%85%8D%EC%B2%98)
-- [Automation Surfaces Owned by jclee-bot | jclee-bot가 소유하는 자동화 영역](#automation-surfaces-owned-by-jclee-bot--jclee-bot%EA%B0%80-%EC%86%8C%EC%9C%A0%ED%95%98%EB%8A%94-%EC%9E%90%EB%8F%99%ED%99%94-%EC%84%B8%EB%A9%B4%EC%A0%81)
-- [Go Tools | Go 도구](#go-tools--go-%EB%8F%84%EA%B5%AC)
+- [Repository Structure | 저장소 구조](#repository-structure--%EC%A0%80%EC%9E%A5%EC%86%8C-%EA%B5%AC%EC%A1%B0)
+- [Automation Surfaces Owned by jclee-bot | jclee-bot가 소유하는 자동화 세면적](#automation-surfaces-owned-by-jclee-bot--jclee-bot%EA%B0%80-%EC%86%8C%EC%9C%A0%ED%95%98%EB%8A%94-%EC%9E%90%EB%8F%99%ED%99%94-%EC%84%B8%EB%A9%B4%EC%A0%81)
+- [Go Automation Tools | Go 자동화 도구](#go-automation-tools--go-%EC%9E%90%EB%8F%99%ED%99%94-%EB%8F%84%EA%B5%AC)
 - [Quick Start | 빠른 시작](#quick-start--%EB%B9%A0%EB%A5%B8-%EC%8B%9C%EC%9E%91)
 - [Local Development | 로컬 개발](#local-development--%EB%A1%9C%EC%BB%AC-%EA%B0%9C%EB%B0%9C)
-- [Commands Reference | 명령어 레퍼런스](#commands-reference--%EB%AA%85%EB%A0%B9%EC%96%B4-%EB%A0%88%ED%8D%BC%EB%9F%B0%EC%8A%A4)
-- [Contribution Guide | 기여 가이드](#contribution-guide--%EA%B8%B0%EC%97%AC-%EA%B0%80%EC%9D%B4%EB%93%9C)
+- [Commands Reference | 명령어 레퍼런스](#commands-reference--%EB%AA%85%EB%A0%B9%EC%96%B4-%EB%A0%88%ED%8D%BC%EB%9E%80%EC%8A%A4)
+- [Contributing | 기여 가이드](#contributing--%EA%B8%B0%EC%97%AC-%EA%B0%80%EC%9D%B4%EB%93%9C)
 - [License | 라이선스](#license--%EB%9D%BC%EC%9D%B4%EC%84%A0%EC%8A%A4)
 
 ---
 
 ## Overview | 개요
 
-### English
+**EN —** This repository packages two closely related deliverables:
 
-This repository is a **dual-surface automation project**. It packages a production-grade Splunk app called `security_alert` while simultaneously serving as the home of a self-hosted GitHub automation stack driven by **`jclee-bot`**.
+1. A production-grade **Splunk app** (`security_alert/`) that ingests security events, normalizes them through a custom CIM-compliant props/transforms pipeline, and surfaces them via an Alert Builder dashboard, an Alert Management dashboard, and a Data Explorer dashboard. The app ships with a Slack alert action and an XWiki alert repository integration.
+2. A **GitHub automation control plane** for the surrounding engineering workflow — issue triage, branch/PR scaffolding, automated PR review, Dependabot auto-merge, post-merge cleanup, release notes, release publishing, CI failure issue creation, and downstream health checks. All mutating automation is owned by the **`jclee-bot`** GitHub App.
 
-The Splunk app delivers a complete alerting subsystem: custom alert actions (including a Slack notifier and a safe formatting helper), saved searches, macros, transforms, props, alert-builder UIs, an alert management dashboard, a data explorer dashboard, and an easy-alert builder. All Python dependencies that the alert actions need at runtime (`urllib3`, `charset_normalizer`, `idna`) are vendored under `security_alert/lib/python3/` so the app remains air-gapped-friendly inside a Splunk deployment server topology.
+The repository is intended to be operated as a single coherent platform: the Splunk app handles **detection and response**, while the GitHub automation handles **software delivery and lifecycle hygiene**. Both halves are bound together by shared vocabulary (alerts ↔ issues) and a common automation owner.
 
-On the GitHub side, the repository is wired with **fourteen GitHub Actions workflows** that together implement a full lifecycle: branch creation from issues, PR conversion, automated PR review (general + security), auto-merge for trusted PRs, dependabot auto-merge, bot auto-fix, post-merge cleanup, issue backfill, release notes drafting, release publishing, downstream health checks, and CI failure issue creation. Every mutating action is owned by the `jclee-bot` GitHub App identity. The LLM calls made by the workflows (and by the bot) are routed through **CLIProxyAPI v1** exposed at `https://cliproxy.jclee.me/v1`, with the homelab host address kept as the placeholder `<homelab-host>:8317`. The PR review surface delegates to the public [`qodo-ai/pr-agent`](https://github.com/qodo-ai/pr-agent) tool, and the bot is reachable for callback HTTP traffic at `https://bot.jclee.me` (homelab placeholder: `<homelab-host>`).
+**KR —** 본 저장소는 두 가지 핵심 결과물을 함께 제공합니다.
 
-### 한국어
+1. **Splunk 앱** (`security_alert/`) — 보안 이벤트를 수집하고, CIM 호환 props/transforms 파이프라인으로 정규화한 뒤, Alert Builder 대시보드 / Alert Management 대시보드 / Data Explorer 대시보드로 시각화합니다. Slack 알림 액션과 XWiki 알림 리포지토리 연동이 포함되어 있습니다.
+2. **GitHub 자동화 컨트롤 플레인** — 이슈 분류, 브랜치/PR 스캐폴딩, 자동 PR 리뷰, Dependabot 자동 병합, 병합 후 정리, 릴리스 노트, 릴리스 퍼블리싱, CI 실패 이슈 생성, 다운스트림 헬스 체크 등 엔지니어링 워크플로우 전반을 자동화합니다. 모든 변형(mutating) 자동화는 **`jclee-bot`** GitHub App이 소유합니다.
 
-본 저장소는 **이중 표면(Dual-Surface) 자동화 프로젝트**입니다. `security_alert`라는 프로덕션 등급의 Splunk 앱을 패키징하는 동시에, **`jclee-bot`**이 주도하는 자체 호스팅 GitHub 자동화 스택의 본거지 역할을 합니다.
-
-Splunk 앱은 완성된 알림 서브시스템을 제공합니다. 커스텀 alert action(Slack 알리미, safe formatting 헬퍼 포함), saved search, macro, transform, props, alert builder UI, alert management 대시보드, data explorer 대시보드, easy-alert builder를 포함합니다. Alert action이 런타임에 필요로 하는 모든 Python 의존성(`urllib3`, `charset_normalizer`, `idna`)은 `security_alert/lib/python3/`에 벤더링되어, Splunk deployment server 토폴로지 내에서 에어갭 친화적으로 동작합니다.
-
-GitHub 측에서는 **14개의 GitHub Actions 워크플로**가 라이프사이클 전체를 구현합니다: 이슈에서 브랜치 생성, PR 변환, 자동 PR 리뷰(일반 + 보안), 신뢰할 수 있는 PR의 자동 머지, Dependabot 자동 머지, 봇 자동 픽스, 머지 후 정리, 이슈 백필, 릴리스 노트 초안 작성, 릴리스 게시, 다운스트림 헬스 체크, CI 실패 이슈 생성. 모든 변형(mutating) 작업은 `jclee-bot` GitHub App 정체성을 통해 소유됩니다. 워크플로와 봇이 수행하는 LLM 호출은 `https://cliproxy.jclee.me/v1`로 노출되는 **CLIProxyAPI v1**을 통해 라우팅되며, 홈랩 호스트 주소는 `<homelab-host>:8317` 플레이스홀더로 유지됩니다. PR 리뷰 표면은 공개 도구 [`qodo-ai/pr-agent`](https://github.com/qodo-ai/pr-agent)에 위임되며, 봇은 콜백 HTTP 트래픽을 `https://bot.jclee.me`(홈랩 플레이스홀더: `<homelab-host>`)에서 수신합니다.
+Splunk 앱은 **탐지/대응**을 담당하고, GitHub 자동화는 **소프트웨어 전달/생애주기 관리**를 담당합니다. 두 영역은 동일한 어휘(이슈 ↔ 알림)와 단일 자동화 오너를 통해 결합됩니다.
 
 ---
 
 ## Features | 주요 기능
 
-### English
+### Splunk App | Splunk 앱
 
-- **Splunk `security_alert` App** — A complete alerting kit: custom alert actions, saved searches, macros, transforms, props, and four custom UI views.
-- **Slack Notification Path** — `bin/slack.py` ships a Slack-compatible alert action, with `bin/safe_fmt.py` providing defensive string formatting for untrusted payload fields.
-- **Alert Builder UX** — `alert-builder.xml` plus `easy_alert_builder.xml` give analysts a guided UI for composing saved searches, while `alert-management-dashboard.xml` and `data-explorer-dashboard.xml` provide operational visibility.
-- **Vendored Python Runtime** — `urllib3`, `charset_normalizer`, and `idna` are packaged inside `lib/python3/` so the app works on Splunk hosts without internet access.
-- **GitHub Automation by `jclee-bot`** — 14 GitHub Actions workflows, every mutating one attributed to the `jclee-bot` identity, covering the full PR/issue/release lifecycle.
-- **CLIProxyAPI Routing** — All LLM calls go through `https://cliproxy.jclee.me/v1` (homelab placeholder: `<homelab-host>:8317`), enabling a single model abstraction layer.
-- **Model Tiers** — `gpt-5.5` is the README-generation primary model; `minimax-m3` is the documented fallback routed through the same CLIProxyAPI.
-- **PR Review Delegation** — PR review surface uses the public [`qodo-ai/pr-agent`](https://github.com/qodo-ai/pr-agent) tool, configured against the CLIProxyAPI endpoint.
-- **Bot Callback Surface** — `https://bot.jclee.me` (homelab placeholder: `<homelab-host>`) is the inbound HTTP endpoint for bot-driven events.
-- **Bilingual Documentation Set** — `docs/` holds deployment, cleanup, and quick-start material; `resume/` holds the API/architecture/deployment/troubleshooting deep-dive notes.
+- **Alert Builder Dashboard** — `default/data/ui/views/alert-builder.xml` provides a guided UI for assembling alert definitions from CIM fields without hand-writing SPL.
+- **Alert Management Dashboard** — `default/data/ui/views/alert-management-dashboard.xml` centralizes live alerts with owner, severity, and suppression state.
+- **Data Explorer Dashboard** — `default/data/ui/views/data-explorer-dashboard.xml` offers an exploratory view over normalized event data.
+- **Easy Alert Builder** — `default/data/ui/views/easy_alert_builder.xml` provides a low-friction path for less technical analysts.
+- **Custom search commands** (`bin/safe_fmt.py`, `bin/slack.py`, `bin/six.py`) — including a Slack alerting custom command and a safe formatting helper.
+- **CIM-compliant normalization** — `props.conf`, `transforms.conf`, `macros.conf` define field extractions, lookup tables, and reusable macros.
+- **XWiki alert repository integration** — see [`docs/ALERT-REPOSITORY-XWIKI.md`](docs/ALERT-REPOSITORY-XWIKI.md).
+- **Vendored Python runtime** — `lib/python3/` ships `urllib3`, `idna`, and `charset_normalizer` so the app runs deterministically across Splunk versions.
 
-### 한국어
+### GitHub Automation | GitHub 자동화
 
-- **Splunk `security_alert` 앱** — 커스텀 alert action, saved search, macro, transform, props, 4개의 커스텀 UI 뷰를 갖춘 완성된 알림 키트.
-- **Slack 알림 경로** — `bin/slack.py`는 Slack 호환 alert action을 제공하며, `bin/safe_fmt.py`는 신뢰할 수 없는 페이로드 필드에 대한 방어적 문자열 포맷팅을 제공합니다.
-- **Alert Builder UX** — `alert-builder.xml`과 `easy_alert_builder.xml`은 분석가가 saved search를 작성할 수 있는 가이드형 UI를 제공하며, `alert-management-dashboard.xml`과 `data-explorer-dashboard.xml`은 운영 가시성을 제공합니다.
-- **벤더링된 Python 런타임** — `urllib3`, `charset_normalizer`, `idna`가 `lib/python3/`에 패키징되어 인터넷 접속이 없는 Splunk 호스트에서도 동작합니다.
-- **`jclee-bot` 기반 GitHub 자동화** — 14개의 GitHub Actions 워크플로로 구성되며, 변형 작업은 모두 `jclee-bot` 정체성으로 귀속됩니다. PR/이슈/릴리스 라이프사이클 전체를 다룹니다.
-- **CLIProxyAPI 라우팅** — 모든 LLM 호출은 `https://cliproxy.jclee.me/v1`(홈랩 플레이스홀더: `<homelab-host>:8317`)을 통해 라우팅되어 단일 모델 추상화 계층을 가능하게 합니다.
-- **모델 등급** — `gpt-5.5`가 README 생성 기준 모델이며, `minimax-m3`는 동일한 CLIProxyAPI를 통해 라우팅되는 문서화된 폴백 모델입니다.
-- **PR 리뷰 위임** — PR 리뷰 표면은 공개 도구 [`qodo-ai/pr-agent`](https://github.com/qodo-ai/pr-agent)를 사용하며, CLIProxyAPI 엔드포인트에 대해 구성됩니다.
-- **봇 콜백 표면** — `https://bot.jclee.me`(홈랩 플레이스홀더: `<homelab-host>`)는 봇이驱动하는 이벤트의 인바운드 HTTP 엔드포인트입니다.
-- **이중 언어 문서 세트** — `docs/`는 배포, 정리, 빠른 시작 자료를, `resume/`은 API/아키텍처/배포/트러블슈팅 심화 노트를 보유합니다.
+- **App-owned mutating automation** — every action that opens, closes, merges, edits, comments, labels, or assigns is performed by `jclee-bot`. The automation source of truth is the App, not individual workflow files.
+- **Issue ↔ Branch ↔ PR lifecycle** — issues can be turned into branches and PRs with one command.
+- **PR review automation** — first-party review combined with PR-Agent (`qodo-ai/pr-agent`) for deeper AI review.
+- **Dependabot auto-merge** with safety checks for CI and review status.
+- **Post-merge cleanup** of feature branches and stale remote refs.
+- **Release notes drafting + publishing** — automated changelog generation tied to merged PRs.
+- **Downstream health checks** — periodic verification of consumer repositories or services.
+- **CI failure → issue creation** — failed CI runs become actionable issues automatically.
+- **Bot auto-fix** — small, low-risk fixes are applied by the bot without human intervention.
+
+> **EN:** Workflow files are implementation triggers; the *behavior* is owned by `jclee-bot`.
+> **KR:** 워크플로우 파일은 실행 트리거이며, 실제 *동작*은 `jclee-bot`이 소유합니다.
+
+---
+
+## Architecture | 아키텍처
+
+The platform is split into a **data plane** (Splunk detection/response) and a **control plane** (GitHub automation), bridged by the `jclee-bot` GitHub App and the homelab infrastructure.
+
+```mermaid
+flowchart TD
+    subgraph SRC["GitHub Repository"]
+        EVT["GitHub Events<br/>issues.opened<br/>pull_request.*<br/>push<br/>schedule (cron)"]
+        APP["security_alert/<br/>(Splunk App)"]
+    end
+
+    subgraph OWNER["Automation Owner"]
+        BOT["jclee-bot<br/>(GitHub App<br/>App-owned mutating automation)"]
+    end
+
+    subgraph TRIG["Implementation Triggers"]
+        WF["GitHub Actions<br/>14 workflow files<br/>(implementation triggers,<br/>not the source of truth)"]
+    end
+
+    subgraph REVIEW["AI Review Layer"]
+        PRA["PR-Agent<br/>qodo-ai/pr-agent"]
+    end
+
+    subgraph MODEL["Model Routing"]
+        CLI["CLIProxyAPI<br/>https://cliproxy.jclee.me/v1<br/>(primary: gpt-5.5,<br/>fallback: minimax-m3)"]
+    end
+
+    subgraph HOMELAB["Homelab Infrastructure"]
+        HOST["&lt;homelab-host&gt;<br/>(Splunk indexer<br/>+ alert dispatcher)"]
+        ELK["&lt;homelab-elk&gt;<br/>(ELK Stack)"]
+    end
+
+    EVT -->|activates| WF
+    WF -->|invokes<br/>as jclee-bot| BOT
+    BOT -->|mutates repo| EVT
+    WF -->|requests review| PRA
+    PRA -.uses.-> CLI
+    APP -->|forwards events| HOST
+    HOST -->|indexes / searches| ELK
+    CLI -->|read-only egress| HOST
+```
+
+**Reading the diagram | 다이어그램 읽기**
+
+- **Solid arrows** denote direct, in-band control flow.
+- **Dashed arrows** denote indirect, out-of-band egress (the PR-Agent/CLIProxy path).
+- **Subgraphs** group ownership: `SRC` is the repository surface, `OWNER` is the single automation principal, `TRIG` is the implementation layer (workflow files), `REVIEW` is the AI review layer, `MODEL` is the model routing layer, and `HOMELAB` is the operator-owned infrastructure.
+
+> **EN:** The exact homelab hostnames (`<homelab-host>`, `<homelab-elk>`) are intentionally left as placeholders so this README never embeds private network identifiers.
+> **KR:** 홈랩 호스트명(`<homelab-host>`, `<homelab-elk>`)은 사설 네트워크 식별자가 README에 하드코딩되지 않도록 의도적으로 자리표시자로 남겨두었습니다.
 
 ---
 
 ## Repository Structure | 저장소 구조
 
-The layout below reflects the **actual top-level directories** of this repository. The implementation triggers (GitHub Actions workflow files) live under `.github/workflows/` and are intentionally not listed as a tree branch below; they are described in the [Automation Surfaces](#automation-surfaces-owned-by-jclee-bot--jclee-bot%EA%B0%80-%EC%86%8C%EC%9C%A0%ED%95%98%EB%8A%94-%EC%9E%90%EB%8F%99%ED%99%94-%EC%84%B8%EB%A9%B4%EC%A0%81) section, because they are execution surfaces, not the source of truth of automation behavior.
+The repository is intentionally flat at the top level. There is no `_bot-scripts/` directory — that name only ever appears as a transient CI checkout path, never as a real source-controlled directory.
 
-아래 레이아웃은 본 저장소의 **실제 최상위 디렉터리**를 반영합니다. 구현 트리거(GitHub Actions 워크플로 파일)는 `.github/workflows/`에 있으며 의도적으로 트리 분기로 나열하지 않습니다. 자동화 행위의 진실의 원천이 아니라 실행 표면이기 때문에, [자동화 영역](#automation-surfaces-owned-by-jclee-bot--jclee-bot%EA%B0%80-%EC%86%8C%EC%9C%A0%ED%95%98%EB%8A%94-%EC%9E%90%EB%8F%99%ED%99%94-%EC%84%B8%EB%A9%B4%EC%A0%81) 섹션에서 설명합니다.
-
-```text
+```
 .
 ├── CONTRIBUTING.md
 ├── LICENSE
@@ -106,15 +155,16 @@ The layout below reflects the **actual top-level directories** of this repositor
 │   └── RELEASE-NOTES.md
 ├── demo/
 │   └── README.md
-└── security_alert/                        # Splunk App (App-owned automation surface)
+└── security_alert/
+    ├── README.md
     ├── app.manifest
-    ├── bin/                               # Custom alert action scripts (Python)
+    ├── bin/
     │   ├── safe_fmt.py
     │   ├── six.py
     │   └── slack.py
     ├── metadata/
     │   └── default.meta
-    ├── default/                           # App defaults: conf + UI
+    ├── default/
     │   ├── alert_actions.conf
     │   ├── app.conf
     │   ├── macros.conf
@@ -131,287 +181,232 @@ The layout below reflects the **actual top-level directories** of this repositor
     │               ├── data-explorer-dashboard.xml
     │               └── easy_alert_builder.xml
     └── lib/
-        └── python3/                       # Vendored Python dependencies
-            ├── charset_normalizer-3.4.4.dist-info/
+        └── python3/
             ├── idna-3.11.dist-info/
-            └── urllib3/
+            ├── urllib3/
+            └── charset_normalizer-3.4.4.dist-info/
 ```
 
-Notes on the layout:
-- `resume/` is the engineer's archived set of project resumes written for this same automation stack (API, Architecture, Deployment, Troubleshooting).
-- `docs/` is the operational documentation: deployment runbook, legacy cleanup report, quick-start, release notes, and the xWiki alert-repository migration note.
-- `demo/` hosts an opt-in demo of the alert builder experience.
-- `security_alert/` is the **App-owned** automation surface — it ships its own UI, alert actions, and saved searches, independent of the GitHub-side automation.
+---
+
+## Automation Surfaces Owned by jclee-bot | jclee-bot가 소유하는 자동화 세면적
+
+The automation is partitioned into named **surfaces**, not raw workflow files. Each surface is owned by `jclee-bot`; the workflow files in the repo are merely the triggers that invoke the bot's behavior. If you are looking for "what runs when," look at the surface — not the YAML.
+
+### EN — Surface Catalog
+
+| Surface | Intent | Trigger type | Owner |
+|---|---|---|---|
+| `issue-to-branch` | Turn a well-formed issue into a working branch. | issue event | `jclee-bot` |
+| `branch-to-pr` | Open a PR from an in-progress branch. | push / label event | `jclee-bot` |
+| `pr-review` | First-party automated review on every PR. | pull_request event | `jclee-bot` |
+| `security-pr-review` | Stricter review for security-labeled PRs. | pull_request + label | `jclee-bot` |
+| `dependabot-auto-merge` | Auto-merge safe Dependabot updates after CI passes. | pull_request event | `jclee-bot` |
+| `pr-auto-merge` | Auto-merge approved PRs that meet all checks. | pull_request event | `jclee-bot` |
+| `bot-auto-fix` | Apply trivial, low-risk fixes from the bot itself. | comment / label event | `jclee-bot` |
+| `merged-pr-cleanup` | Delete merged feature branches. | pull_request closed | `jclee-bot` |
+| `issue-backfill` | Backfill missing context on legacy issues. | workflow_dispatch | `jclee-bot` |
+| `release-notes` | Draft release notes from merged PRs. | push to default branch | `jclee-bot` |
+| `release-publish` | Publish a tagged release using the drafted notes. | push of tag | `jclee-bot` |
+| `downstream-health-check` | Periodically verify downstream consumers. | schedule | `jclee-bot` |
+| `ci-failure-issues` | Convert failing CI runs into actionable issues. | workflow_run event | `jclee-bot` |
+| `ci` | The base CI pipeline (lint, build, test). | push / pull_request | `jclee-bot` |
+
+> **EN:** Workflow files are implementation triggers. They are not the source of truth. If a workflow file changes, the surface owned by `jclee-bot` does not necessarily change. Conversely, if `jclee-bot`'s behavior changes, the surface changes even if the workflow YAML is identical.
+>
+> The repository uses the exact marker **`jclee-bot에의해자동화됨`** on issues that are produced or managed by automation. This marker is a stable, grep-able contract: do not edit, rename, or localize it.
+
+### KR — 세면적 카탈로그
+
+| 세면적 | 의도 | 트리거 종류 | 오너 |
+|---|---|---|---|
+| `issue-to-branch` | 형식이 갖춰진 이슈를 작업 브랜치로 변환 | issue 이벤트 | `jclee-bot` |
+| `branch-to-pr` | 작업 브랜치에서 PR을 생성 | push / label 이벤트 | `jclee-bot` |
+| `pr-review` | 모든 PR에 대한 1차 자동 리뷰 | pull_request 이벤트 | `jclee-bot` |
+| `security-pr-review` | security 라벨이 붙은 PR에 대한 강화 리뷰 | pull_request + label | `jclee-bot` |
+| `dependabot-auto-merge` | CI 통과 후 안전한 Dependabot 업데이트 자동 병합 | pull_request 이벤트 | `jclee-bot` |
+| `pr-auto-merge` | 모든 체크를 통과한 승인 PR 자동 병합 | pull_request 이벤트 | `jclee-bot` |
+| `bot-auto-fix` | 사소하고 위험도가 낮은 수정을 봇이 직접 적용 | comment / label 이벤트 | `jclee-bot` |
+| `merged-pr-cleanup` | 병합된 피처 브랜치 정리 | pull_request closed | `jclee-bot` |
+| `issue-backfill` | 기존 이슈에 누락된 컨텍스트 보강 | workflow_dispatch | `jclee-bot` |
+| `release-notes` | 병합된 PR로부터 릴리스 노트 초안 작성 | 기본 브랜치 push | `jclee-bot` |
+| `release-publish` | 작성된 노트로 태그 기반 릴리스 게시 | 태그 push | `jclee-bot` |
+| `downstream-health-check` | 다운스트림 컨슈머 주기적 검증 | schedule | `jclee-bot` |
+| `ci-failure-issues` | 실패한 CI 실행을 실행 가능한 이슈로 변환 | workflow_run 이벤트 | `jclee-bot` |
+| `ci` | 기본 CI 파이프라인 (lint, build, test) | push / pull_request | `jclee-bot` |
+
+> **KR:** 워크플로우 파일은 구현 트리거일 뿐 진실의 원천(source of truth)이 아닙니다. 워크플로우 파일이 변경되더라도 `jclee-bot`이 소유한 세면적이 반드시 변경되는 것은 아닙니다. 반대로 `jclee-bot`의 동작이 바뀌면 워크플로우 YAML이 동일하더라도 세면적은 변경됩니다.
+>
+> 저장소는 자동화에 의해 생성되거나 관리되는 이슈에 정확히 **`jclee-bot에의해자동화됨`** 마커를 사용합니다. 이 마커는 안정적인 grep 가능 계약이므로 임의로 편집/이름 변경/현지화하지 마십시오.
 
 ---
 
-## Architecture | 아키텍처
+## Go Automation Tools | Go 자동화 도구
 
-The diagram below is rendered as a GitHub-native Mermaid flowchart. All node labels that contain angle brackets or URLs are quoted strings with `<` and `>` HTML-escaped so GitHub renders the block correctly.
+**EN —** This repository currently ships **zero** Go-based automation tools. All automation surfaces are implemented either as GitHub Actions workflow YAML (acting as triggers for `jclee-bot`) or as the Splunk app's Python search commands under `security_alert/bin/`.
 
-```mermaid
-flowchart TB
-    GH["GitHub Repository<br/>Issues / PRs / Branches<br/>(owned by jclee-bot)"]
-    BOT["jclee-bot<br/>Automation Owner<br/>jclee-bot에의해자동화됨"]
-    CP["CLIProxyAPI v1<br/>&lt;homelab-host&gt;:8317<br/>https://cliproxy.jclee.me/v1"]
-    M1["gpt-5.5 (Primary)"]
-    M2["minimax-m3 (Fallback)"]
-    PRA["qodo-ai/pr-agent<br/>PR Reviews"]
-    BE["bot.jclee.me<br/>&lt;homelab-host&gt;<br/>HTTP Callback Endpoint"]
-    SA["security_alert Splunk App<br/>alert actions / saved searches<br/>dashboards / custom commands"]
-    HL["Homelab Infrastructure<br/>&lt;homelab-host&gt; / &lt;homelab-elk&gt;<br/>(placeholders, not real IPs)"]
+If you are planning to introduce a Go tool:
 
-    GH --> BOT
-    BOT --> CP
-    CP --> M1
-    CP --> M2
-    BOT --> PRA
-    BOT --> BE
-    BOT --> SA
-    HL --- CP
-    HL --- BE
-    HL --- SA
-```
+1. Open an issue first and tag it `area: go-tools` so `jclee-bot` can scaffold the layout.
+2. Place the Go module under a clearly-named top-level directory (e.g. `tools/<name>/`).
+3. Provide a `Makefile`, a `go.mod` pinned to a supported Go version, and a `cmd/` entrypoint.
+4. Document any new CLI subcommand in the **Commands Reference** section below.
+5. Ensure the tool is invokable from `jclee-bot` via `workflow_dispatch` or a composite action.
 
-Key flows in plain text:
+Until then, treat the Go toolchain as **out of scope** for this repository.
 
-1. A contributor opens an issue or PR on GitHub. The issue/PR object carries the `jclee-bot` identity for any subsequent mutation performed by automation.
-2. The bot routes any LLM-bound work (comment drafting, PR review, release note synthesis, issue backfill) through **CLIProxyAPI v1** at `https://cliproxy.jclee.me/v1`, which on the homelab side is reachable at the placeholder address `<homelab-host>:8317`.
-3. CLIProxyAPI selects `gpt-5.5` first and falls back to `minimax-m3` on capacity / policy error.
-4. PR review text is produced via [`qodo-ai/pr-agent`](https://github.com/qodo-ai/pr-agent) talking to the same CLIProxyAPI.
-5. `jclee-bot` posts results back to GitHub and, when needed, calls the callback endpoint at `https://bot.jclee.me` (homelab placeholder: `<homelab-host>`).
-6. The Splunk `security_alert` app operates independently on Splunk SH/IDX hosts and is not directly in the LLM path; it is the *operational* surface that the alerts eventually fire into.
+**KR —** 본 저장소는 현재 **Go 기반 자동화 도구를 포함하지 않습니다.** 모든 자동화 세면적은 GitHub Actions 워크플로우 YAML(`jclee-bot`의 트리거 역할) 또는 `security_alert/bin/` 하위의 Splunk 앱 Python 검색 명령으로 구현됩니다.
 
----
+Go 도구를 새로 도입하려는 경우:
 
-## Automation Surfaces Owned by jclee-bot | jclee-bot가 소유하는 자동화 영역
+1. 먼저 이슈를 열고 `area: go-tools` 라벨을 부착하여 `jclee-bot`이 레이아웃을 스캐폴딩하도록 합니다.
+2. Go 모듈은 의미가 명확한 최상위 디렉터리(예: `tools/<name>/`)에 배치합니다.
+3. `Makefile`, 지원되는 Go 버전에 고정된 `go.mod`, `cmd/` 진입점을 제공합니다.
+4. 새로운 CLI 서브커맨드는 아래 **명령어 레퍼런스** 섹션에 문서화합니다.
+5. `jclee-bot`이 `workflow_dispatch` 또는 composite action을 통해 호출할 수 있도록 보장합니다.
 
-> **English**
-> The fourteen GitHub Actions workflows in this repository are *implementation triggers* for the automation surfaces below. The source of truth of "what the bot does" is this list, not the workflow file names. Every mutating operation is performed under the **`jclee-bot`** GitHub App identity.
-
-> **한국어**
-> 본 저장소의 14개 GitHub Actions 워크플로는 아래 자동화 영역의 *구현 트리거*입니다. "봇이 무엇을 하는가"의 진실의 원천은 워크플로 파일명이 아니라 이 목록입니다. 모든 변형 작업은 **`jclee-bot`** GitHub App 정체성 하에서 수행됩니다.
-
-### 1. Branch-to-PR Conversion
-- **English**: When a branch is pushed without a matching open PR, automation opens a draft PR, links the related issue, and applies label hygiene. This is the canonical "branch in, PR out" surface.
-- **한국어**: 매칭되는 PR이 없는 브랜치가 푸시되면 자동화가 드래프트 PR을 열고, 관련 이슈를 연결하며, 라벨 위생을 적용합니다. "브랜치 입력, PR 출력"의 표준 표면입니다.
-
-### 2. Issue-to-Branch Conversion
-- **English**: Labeled, triaged issues are converted into working branches with a deterministic naming scheme so contributors (human or bot) can pick up the work. **Issue automation behavior is `jclee-bot에의해자동화됨`**, meaning the bot is the single owner of this transition.
-- **한국어**: 라벨링·트리거된 이슈는 결정론적 명명 규칙을 가진 작업 브랜치로 변환되어, 기여자(사람 또는 봇)가 작업을 인계받을 수 있게 합니다. **이슈 자동화 동작은 `jclee-bot에의해자동화됨`이며**, 이는 봇이 이 전환의 단일 소유자임을 의미합니다.
-
-### 3. General PR Review
-- **English**: Every opened PR receives a structured review via [`qodo-ai/pr-agent`](https://github.com/qodo-ai/pr-agent), which is configured against CLIProxyAPI at `https://cliproxy.jclee.me/v1`.
-- **한국어**: 모든 열린 PR은 CLIProxyAPI(`https://cliproxy.jclee.me/v1`)에 구성된 [`qodo-ai/pr-agent`](https://github.com/qodo-ai/pr-agent)를 통해 구조화된 리뷰를 받습니다.
-
-### 4. Security PR Review
-- **English**: A dedicated security-focused review path re-runs the same PR-Agent pipeline with a security-flavored prompt profile, then comments a security summary back on the PR.
-- **한국어**: 보안 특화 리뷰 경로는 동일한 PR-Agent 파이프라인을 보안 프롬프트 프로필로 재실행한 뒤 보안 요약을 PR에 댓글로 게시합니다.
-
-### 5. Dependabot Auto-Merge
-- **English**: Dependabot PRs that pass policy checks (semver range, CI status, no manual label) are auto-merged by the bot.
-- **한국어**: 정책 검사(semver 범위, CI 상태, 수동 라벨 부재)를 통과한 Dependabot PR은 봇이 자동 머지합니다.
-
-### 6. PR Auto-Merge
-- **English**: PRs that carry an explicit "ready-to-merge" label and pass CI are merged by the bot without human click. The merge commit and any back references are attributed to `jclee-bot`.
-- **한국어**: "ready-to-merge" 라벨이 명시되고 CI를 통과한 PR은 사람의 클릭 없이 봇이 머지합니다. 머지 커밋과 모든 역참조는 `jclee-bot`에 귀속됩니다.
-
-### 7. Bot Auto-Fix
-- **English**: Lint, formatting, and trivial code-fix findings from the PR review surfaces are dispatched as small follow-up commits or PRs authored by `jclee-bot`.
-- **한국어**: PR 리뷰 표면에서 발견된 lint, 포맷팅, 사소한 코드 픽스는 `jclee-bot`이 작성한 소규모 후속 커밋 또는 PR로 디스패치됩니다.
-
-### 8. Merged-PR Cleanup
-- **English**: After merge, the head branch and any stale remote refs are deleted, and the related issue is closed if it was the trigger.
-- **한국어**: 머지 후 헤드 브랜치와 오래된 원격 ref가 삭제되며, 트리거가 된 경우 관련 이슈가 닫힙니다.
-
-### 9. Issue Backfill
-- **English**: Periodically, the bot scans closed PRs and one-off commits and backfills missing issues when a piece of work landed without a tracking ticket.
-- **한국어**: 주기적으로 봇이 닫힌 PR과 일회성 커밋을 스캔하여, 추적 티켓 없이 진행된 작업에 누락된 이슈를 백필합니다.
-
-### 10. Release Notes Drafting
-- **English**: On tag push, the bot aggregates merged PRs by label and produces a draft `RELEASE-NOTES` document via CLIProxyAPI.
-- **한국어**: 태그 푸시 시 봇이 라벨별로 머지된 PR을 집계하여 CLIProxyAPI를 통해 `RELEASE-NOTES` 초안을 생성합니다.
-
-### 11. Release Publishing
-- **English**: After a maintainer's approval label, the bot publishes the release, attaches the drafted notes, and cross-posts the changelog.
-- **한국어**: 메인테이너의 승인 라벨 이후 봇이 릴리스를 게시하고, 작성된 노트를 첨부하며, 변경 로그를 교차 게시합니다.
-
-### 12. Downstream Health Check
-- **English**: A scheduled workflow pings the CLIProxyAPI health probe and the bot callback endpoint, and opens an issue if either is degraded.
-- **한국어**: 예약된 워크플로가 CLIProxyAPI 헬스 프로브와 봇 콜백 엔드포인트에 핑을 보내고, 둘 중 하나라도 성능 저하가 감지되면 이슈를 엽니다.
-
-### 13. CI Failure Issue Creation
-- **English**: When CI fails on the default branch, the bot opens (or updates) an issue tagged with the failing run, the suspected owner, and the CLIProxyAPI request id if available.
-- **한국어**: 기본 브랜치에서 CI가 실패하면 봇이 실패한 런, 추정 소유자, 가능한 경우 CLIProxyAPI 요청 ID로 태그된 이슈를 열거나 갱신합니다.
-
-### 14. Continuous Integration
-- **English**: The base CI workflow is the safety net for everything above: it validates the Splunk app bundle, lints the Python alert actions, and smoke-tests the CLIProxyAPI client wrapper.
-- **한국어**: 위 모든 항목을 위한 안전망이 기본 CI 워크플로입니다. Splunk 앱 번들을 검증하고, Python alert action의 lint를 수행하며, CLIProxyAPI 클라이언트 래퍼의 스모크 테스트를 실행합니다.
-
----
-
-## Go Tools | Go 도구
-
-### English
-
-This repository contains **0 Go automation tools**. All automation is implemented as either:
-
-- Splunk-side Python (under `security_alert/bin/` and the vendored runtime under `security_alert/lib/python3/`), or
-- GitHub Actions YAML workflows under `.github/workflows/`.
-
-There is no `cmd/`, `internal/`, or `pkg/` tree, and no `go.mod` is shipped. If a future Go tool is added, it should be placed under a new top-level directory (for example, `tools/`) and documented in this section.
-
-### 한국어
-
-본 저장소에는 **Go 자동화 도구가 0개** 있습니다. 모든 자동화는 다음 두 가지 중 하나로 구현됩니다.
-
-- Splunk 측 Python(`security_alert/bin/` 및 `security_alert/lib/python3/`의 벤더링된 런타임)
-- `.github/workflows/`의 GitHub Actions YAML 워크플로
-
-`cmd/`, `internal/`, `pkg/` 트리가 존재하지 않으며 `go.mod`도 출하되지 않습니다. 향후 Go 도구를 추가하는 경우, 새 최상위 디렉터리(예: `tools/`)에 배치하고 본 섹션에 문서화해야 합니다.
+그 전까지는 Go 툴체인을 본 저장소의 **범위 밖(out of scope)** 으로 간주합니다.
 
 ---
 
 ## Quick Start | 빠른 시작
 
-### Prerequisites | 사전 요구 사항
+### EN — 5-Minute Quick Start
 
-- A Splunk deployment with write access to `$SPLUNK_HOME/etc/apps/`.
-- A GitHub account with permission to install the `jclee-bot` GitHub App on the target repository.
-- Network egress to `https://cliproxy.jclee.me` and `https://bot.jclee.me` (or to the homelab placeholders `<homelab-host>:8317` and `<homelab-host>` if you are running on the homelab network).
+1. **Clone the repository.**
+   ```bash
+   git clone https://github.com/<your-org>/security-alert-platform.git
+   cd security-alert-platform
+   ```
+2. **Install the Splunk app** by copying `security_alert/` into `$SPLUNK_HOME/etc/apps/` and restarting Splunk.
+3. **Install the `jclee-bot` GitHub App** on your repository so all mutating automation is attributed correctly.
+4. **Verify automation** by opening a test issue labeled `area: go-tools` and confirming the bot comments within ~60 seconds.
+5. **Read the deeper guides** in [`docs/QUICK-START.md`](docs/QUICK-START.md) and [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
 
-### 1. Install the Splunk App | Splunk 앱 설치
+### KR — 5분 빠른 시작
 
-```bash
-# Clone the repository
-git clone https://github.com/jclee941/.github
-cd security-alert-splunk-app
-
-# Copy the app bundle to Splunk
-cp -R security_alert "$SPLUNK_HOME/etc/apps/"
-
-# Restart Splunk or reload the app
-"$SPLUNK_HOME/bin/splunk" restart
-# or, without restart:
-"$SPLUNK_HOME/bin/splunk" reload app security_alert
-```
-
-### 2. Configure the GitHub Automation | GitHub 자동화 구성
-
-1. Install the `jclee-bot` GitHub App on the repository.
-2. Add the following repository secrets (names only — values are managed out-of-band):
-   - `CLI_PROXY_URL` (default: `https://cliproxy.jclee.me/v1`)
-   - `BOT_CALLBACK_URL` (default: `https://bot.jclee.me`)
-   - `PR_AGENT_TOKEN` (PR review surface)
-3. Confirm that the 14 workflow files under `.github/workflows/` are present and enabled.
-
-### 3. Verify | 검증
-
-- Open a test issue labeled with the canonical "automation" label; expect the bot to create a branch and post a `jclee-bot에의해자동화됨` comment.
-- Open a test PR; expect a PR-Agent review comment to land within the configured SLA.
-- Trigger a tag push on a throwaway branch; expect a draft release note to appear.
+1. **저장소를 클론합니다.**
+   ```bash
+   git clone https://github.com/<your-org>/security-alert-platform.git
+   cd security-alert-platform
+   ```
+2. `security_alert/` 디렉터리를 `$SPLUNK_HOME/etc/apps/`로 복사한 뒤 Splunk를 재시작하여 **Splunk 앱을 설치**합니다.
+3. 저장소에 **`jclee-bot` GitHub App을 설치**하여 모든 변형 자동화가 올바르게 귀속되도록 합니다.
+4. `area: go-tools` 라벨이 붙은 테스트 이슈를 열어 **자동화를 검증**하고, 봇이 약 60초 이내에 댓글을 남기는지 확인합니다.
+5. [`docs/QUICK-START.md`](docs/QUICK-START.md)와 [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md)의 심화 가이드를 참고합니다.
 
 ---
 
 ## Local Development | 로컬 개발
 
-### Splunk App Development | Splunk 앱 개발
+### Prerequisites | 사전 요구사항
 
-```bash
-# Symlink the app into Splunk for live reload
-ln -s "$(pwd)/security_alert" "$SPLUNK_HOME/etc/apps/security_alert"
+- Splunk Enterprise or Splunk Cloud (≥ 9.0 recommended)
+- Python 3.9+ (matches the runtime vendored under `security_alert/lib/python3/`)
+- A GitHub repository with `jclee-bot` installed and granted the scopes: `contents:write`, `issues:write`, `pull_requests:write`, `checks:read`, `actions:read`
+- Network egress to `https://cliproxy.jclee.me/v1` (PR-Agent / CLIProxyAPI)
+- Network egress to `bot.jclee.me` (bot webhook)
 
-# Watch logs while you edit
-tail -f "$SPLUNK_HOME/var/log/splunk/splunkd_ui.log"
+### Local Splunk sandbox | 로컬 Splunk 샌드박스
 
-# Run the alert action scripts standalone for smoke testing
-python3 security_alert/bin/safe_fmt.py --self-test
-python3 security_alert/bin/slack.py --self-test
-```
+1. Run Splunk in a container or VM reachable as `<homelab-host>` on your local network.
+2. Symlink or copy the app:
+   ```bash
+   ln -s "$(pwd)/security_alert" "$SPLUNK_HOME/etc/apps/security_alert"
+   "$SPLUNK_HOME/bin/splunk" restart
+   ```
+3. Validate by opening the Alert Builder dashboard:
+   `http://<homelab-host>:8000/en-US/app/security_alert/alert-builder`
 
-The app is designed to be Splunk-version tolerant: every conf file lives under `default/`, and any per-environment overrides go in `local/` (which is git-ignored in this repository).
+### Iterating on automation | 자동화 반복 개발
 
-### GitHub Automation Development | GitHub 자동화 개발
+- Use **ephemeral labels** like `area: go-tools` or `triage: needs-bot` on a draft issue, then watch the Actions tab — you should see workflow runs attributed to `jclee-bot`.
+- The `bot-auto-fix` surface is safe to invoke repeatedly; it is idempotent on already-applied suggestions.
+- The `downstream-health-check` surface posts to `bot.jclee.me`; check the bot dashboard for results.
 
-- Use a throwaway fork to iterate on workflow YAML.
-- Use [`act`](https://github.com/nektos/act) to run individual workflows locally against the CLIProxyAPI endpoint (`https://cliproxy.jclee.me/v1`).
-- For model-touching changes, set `CLI_PROXY_URL` to the homelab placeholder `<homelab-host>:8317` so the request stays on the local network.
-- For changes that affect the bot callback surface, point `BOT_CALLBACK_URL` at `<homelab-host>` to avoid hitting the public endpoint during development.
+> **EN:** Never commit real homelab hostnames, container IDs, or private IPs into the repo. Use `<homelab-host>` / `<homelab-elk>` placeholders everywhere.
+> **KR:** 실제 홈랩 호스트명, 컨테이너 ID, 사설 IP는 저장소에 커밋하지 마십시오. 항상 `<homelab-host>` / `<homelab-elk>` 자리표시자를 사용하십시오.
 
 ---
 
 ## Commands Reference | 명령어 레퍼런스
 
-### Splunk Side | Splunk 측
+### Splunk search commands (shipped with the app) | Splunk 검색 명령
 
-| Command | Purpose | Purpose (KR) |
-| --- | --- | --- |
-| `splunk reload app security_alert` | Reload the app without restarting Splunk | Splunk 재시작 없이 앱 리로드 |
-| `splunk reload deploy-server` | Push the app bundle to deployment clients | 앱 번들을 deployment client에 배포 |
-| `python3 security_alert/bin/safe_fmt.py --self-test` | Smoke-test the safe formatter | safe formatter 스모크 테스트 |
-| `python3 security_alert/bin/slack.py --self-test` | Smoke-test the Slack notifier | Slack 알리미 스모크 테스트 |
-| `splunk search '| savedsearch "security_alert:*"'` | List all saved searches shipped by the app | 앱이 출하하는 saved search 목록 조회 |
-| `splunk search '| alert_actions'` | Inspect configured alert actions | 구성된 alert action 검사 |
+| Command | Module | Purpose |
+|---|---|---|
+| `safe_fmt` | `bin/safe_fmt.py` | Format values safely into alert payloads (no injection). |
+| `slack` | `bin/slack.py` | Send a Slack message from a search. |
+| `six` | `bin/six.py` | Python 2/3 compatibility shim for older Splunk versions. |
 
-### GitHub / CLIProxyAPI Side | GitHub / CLIProxyAPI 측
+### Splunk configuration files | Splunk 설정 파일
 
-| Command | Purpose | Purpose (KR) |
-| --- | --- | --- |
-| `gh workflow list` | List enabled workflows on the repo | 저장소의 활성 워크플로 목록 |
-| `gh workflow run 10_pr-review.yml` | Trigger PR review manually | PR 리뷰 수동 트리거 |
-| `gh run watch` | Tail the latest workflow run | 최신 워크플로 실행 추적 |
-| `curl -sS https://cliproxy.jclee.me/v1/health` | CLIProxyAPI health probe | CLIProxyAPI 헬스 프로브 |
-| `curl -sS https://bot.jclee.me/health` | Bot callback health probe | 봇 콜백 헬스 프로브 |
-| `act -W .github/workflows/10_pr-review.yml` | Local execution via `act` | `act`를 통한 로컬 실행 |
+| File | Role |
+|---|---|
+| `default/app.conf` | App identity, label, version. |
+| `default/props.conf` | Field extractions and event types. |
+| `default/transforms.conf` | Lookup definitions, regex transforms. |
+| `default/macros.conf` | Reusable SPL macros. |
+| `default/savedsearches.conf` | Pre-built alerts and reports. |
+| `default/alert_actions.conf` | Alert action bindings (Slack, XWiki). |
+
+### GitHub automation (invoked via bot comments or labels) | GitHub 자동화
+
+| Surface | How to invoke | Example |
+|---|---|---|
+| `issue-to-branch` | Comment `/bot branch` on an issue. | `/bot branch feature/x` |
+| `branch-to-pr` | Comment `/bot pr` on a PR-ready branch's tracking issue. | `/bot pr --draft` |
+| `pr-review` | Automatic on PR open. | (no manual trigger) |
+| `security-pr-review` | Automatic when PR has `security` label. | (no manual trigger) |
+| `dependabot-auto-merge` | Automatic once Dependabot CI passes. | (no manual trigger) |
+| `pr-auto-merge` | Automatic once approvals and checks pass. | (no manual trigger) |
+| `bot-auto-fix` | Comment `/bot fix` on a PR. | `/bot fix --lint` |
+| `merged-pr-cleanup` | Automatic on PR merge. | (no manual trigger) |
+| `issue-backfill` | Comment `/bot backfill` on a legacy issue. | `/bot backfill` |
+| `release-notes` | Automatic on push to default branch. | (no manual trigger) |
+| `release-publish` | Push a semver tag; bot publishes via `bot.jclee.me`. | `git tag v1.2.3 && git push --tags` |
+| `downstream-health-check` | Schedule-driven; manual rerun via `Actions → Downstream Health Check → Run workflow`. | (UI) |
+| `ci-failure-issues` | Automatic on `workflow_run` failure. | (no manual trigger) |
+| `ci` | Automatic on push / pull_request. | (no manual trigger) |
+
+### CLIProxyAPI model routing | CLIProxyAPI 모델 라우팅
+
+| Role | Model | Endpoint |
+|---|---|---|
+| Primary | `gpt-5.5` | `https://cliproxy.jclee.me/v1` |
+| Fallback | `minimax-m3` | `https://cliproxy.jclee.me/v1` |
+
+PR-Agent uses this routing transparently; the bot itself does not embed model credentials.
 
 ---
 
-## Contribution Guide | 기여 가이드
+## Contributing | 기여 가이드
 
-### English
+Please read [`CONTRIBUTING.md`](CONTRIBUTING.md) before opening a pull request. Highlights:
 
-1. **Read** `CONTRIBUTING.md` for the canonical contribution policy.
-2. **For Splunk app changes**:
-   - Edit only under `security_alert/`.
-   - Add new alert action scripts under `security_alert/bin/` and update `alert_actions.conf` accordingly.
-   - Add new UI views under `security_alert/default/data/ui/views/` and reference them from `default.xml`.
-   - Never commit secrets; configuration lives in `local/` (git-ignored).
-3. **For GitHub automation changes**:
-   - Treat workflows as *implementation triggers*; the source of truth of behavior is this README's "Automation Surfaces" section.
-   - Every mutating action must run as `jclee-bot` — do not commit workflows that act under a different identity.
-   - LLM-bound changes must route through `https://cliproxy.jclee.me/v1` (homelab: `<homelab-host>:8317`).
-   - PR review surface must continue to delegate to [`qodo-ai/pr-agent`](https://github.com/qodo-ai/pr-agent).
-4. **For documentation changes**:
-   - `docs/` is operational; `resume/` is archival.
-   - Bilingual updates are encouraged for any user-facing section.
-5. **Open a PR**: The PR review surface will auto-comment; expect the bot auto-merge path to pick up clean PRs that pass CI and carry the "ready-to-merge" label.
-
-### 한국어
-
-1. **읽기**: 표준 기여 정책은 `CONTRIBUTING.md`를 참조하세요.
-2. **Splunk 앱 변경**:
-   - `security_alert/` 하위에서만 편집합니다.
-   - 새 alert action 스크립트는 `security_alert/bin/`에 추가하고 `alert_actions.conf`를 갱신합니다.
-   - 새 UI 뷰는 `security_alent/default/data/ui/views/`에 추가하고 `default.xml`에서 참조합니다.
-   - 시크릿을 커밋하지 마세요. 설정은 `local/`에 보관합니다(git-ignored).
-3. **GitHub 자동화 변경**:
-   - 워크플로는 *구현 트리거*로 취급하세요. 행위의 진실의 원천은 본 README의 "자동화 영역" 섹션입니다.
-   - 모든 변형 작업은 `jclee-bot`으로 실행되어야 합니다. 다른 정체성으로 동작하는 워크플로는 커밋하지 마세요.
-   - LLM 바운드 변경은 `https://cliproxy.jclee.me/v1`(홈랩: `<homelab-host>:8317`)을 통해 라우팅되어야 합니다.
-   - PR 리뷰 표면은 계속해서 [`qodo-ai/pr-agent`](https://github.com/qodo-ai/pr-agent)에 위임되어야 합니다.
-4. **문서 변경**:
-   - `docs/`는 운영용, `resume/`은 보관용입니다.
-   - 사용자 대상 섹션은 이중 언어 업데이트를 권장합니다.
-5. **PR 열기**: PR 리뷰 표면이 자동 댓글을 작성하며, CI를 통과하고 "ready-to-merge" 라벨이 부착된 깨끗한 PR은 봇 자동 머지 경로가 픽업합니다.
+- **One surface per PR.** PRs should map cleanly to a single automation surface or to a single Splunk app component. Mixed-purpose PRs are harder for `jclee-bot` to review and auto-merge.
+- **Do not edit surfaces silently.** If you intend to change a surface's behavior, label the PR `surface:<name>` (e.g. `surface:pr-review`) so the bot can route it through the security PR review surface.
+- **Mark automated issues consistently.** Any issue produced by automation must carry the exact marker **`jclee-bot에의해자동화됨`**. This marker is a stable contract; do not translate it.
+- **No private IPs.** Do not introduce RFC1918 addresses (`192.168.x.x`, `10.x.x.x`, `172.16-31.x.x`) or LXC container numbers into source, docs, comments, or commit messages. Use `<homelab-host>` / `<homelab-elk>` placeholders.
+- **External links.** Only link to the following external endpoints:
+  - `https://cliproxy.jclee.me`
+  - `https://bot.jclee.me`
+  - `https://github.com/qodo-ai/pr-agent`
+- **Markdownlint.** Do not use bold or italic text in place of a real `#` heading.
+- **Mermaid diagrams.** Use a `flowchart TD` block; any node label containing `<...>` must be a quoted string with HTML-escaped brackets (`&lt;...&gt;`).
 
 ---
 
 ## License | 라이선스
 
-This project is distributed under the license described in [`LICENSE`](./LICENSE). By contributing, you agree that your contributions are licensed under the same terms.
-
-본 프로젝트는 [`LICENSE`](./LICENSE)에 기술된 라이선스 하에 배포됩니다. 기여함으로써 귀하의 기여도 동일한 조건으로 라이선스되는 것에 동의합니다.
+See [`LICENSE`](./LICENSE) for the full text. The Splunk app, the vendored Python runtime under `security_alert/lib/python3/`, and the GitHub automation configuration are distributed under the terms stated in that file. Each vendored package retains its own license as documented in its respective `*.dist-info/METADATA` file.
 
 ---
 
-<sub>README generation primary model: <strong>gpt-5.5</strong>. Fallback model: <strong>minimax-m3</strong>, routed through CLIProxyAPI at <code>https://cliproxy.jclee.me/v1</code>. Issue automation behavior marker: <code>jclee-bot에의해자동화됨</code>.</sub>
+### Automation Inventory | 자동화 인벤토리
+
+- **Primary README-generation model:** `gpt-5.5`
+- **Fallback README-generation model:** `minimax-m3` (served via CLIProxyAPI at `https://cliproxy.jclee.me/v1`)
+- **PR review model routing:** PR-Agent (`qodo-ai/pr-agent`) → CLIProxyAPI → primary/fallback
+- **Automation owner:** `jclee-bot` (single owner of all mutating surfaces)
+- **Bot webhook:** `https://bot.jclee.me`
