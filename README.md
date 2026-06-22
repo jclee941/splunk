@@ -1,12 +1,12 @@
 # Security Alert Splunk App & GitHub Automation
 
-[![Workflows](https://img.shields.io/badge/GitHub%20Actions-31%20workflows-brightgreen?style=flat-square)](#automation-inventory--자동화-인벤토리)
+[![Workflows](https://img.shields.io/badge/GitHub%20Actions-16%20workflows-brightgreen?style=flat-square)](#automation-inventory--자동화-인벤토리)
 [![Splunk App](https://img.shields.io/badge/Splunk-security__alert-blue?style=flat-square)](#overview--개요)
 [![CLIProxyAPI](https://img.shields.io/badge/CLIProxyAPI-v1-c0ffee?style=flat-square)](https://cliproxy.jclee.me)
 [![License](https://img.shields.io/badge/License-See%20LICENSE-lightgrey?style=flat-square)](./LICENSE)
 
-> English | 한국어  
-> This README is bilingual. Each major section contains English and Korean descriptions.
+> English | 한국어
+> 이 README는 영문/한글 이중 언어로 작성되었습니다. Each major section contains English and Korean descriptions.
 
 ---
 
@@ -28,19 +28,19 @@
 
 ### English
 
-This repository contains a Splunk application named `security_alert` together with extensive GitHub automation for pull request review, security scanning, documentation maintenance, release handling, issue triage, and CI self-healing.
+This repository contains a Splunk application named `security_alert` together with an extensive GitHub automation layer for pull request review, security scanning, documentation maintenance, release handling, issue triage, and CI self-healing.
 
-The Splunk app includes alert actions, dashboards, saved searches, macros, transforms, and bundled Python dependencies used by the app runtime. The repository also includes operational documentation under `docs/` and `resume/`, plus a `demo/` area for examples or demonstrations.
+The Splunk app provides alert actions, dashboards, saved searches, macros, transforms, and bundled Python dependencies used by the app runtime. The repository also contains operational documentation under `docs/` and `resume/`, plus a `demo/` area for examples.
 
-GitHub automation is implemented with 31 workflow files. The automation integrates GitHub Actions, reusable workflows, security scanners, PR review automation, documentation generation, release publishing, and external AI-assisted services through CLIProxyAPI.
+GitHub automation is implemented with 16 workflow files that integrate GitHub Actions, security scanners, PR review bots, documentation generation, release publishing, and external AI-assisted services through CLIProxyAPI. AI-assisted reviews use [qodo-ai/pr-agent](https://github.com/qodo-ai/pr-agent) routed through the local proxy at [https://cliproxy.jclee.me/v1](https://cliproxy.jclee.me).
 
 ### 한국어
 
-이 저장소는 `security_alert`라는 Splunk 애플리케이션과 PR 리뷰, 보안 스캔, 문서 유지보수, 릴리스 처리, 이슈 분류, CI 자가 복구를 위한 GitHub 자동화를 포함합니다.
+이 저장소는 `security_alert`라는 Splunk 애플리케이션과 PR 리뷰, 보안 스캔, 문서 자동 관리, 릴리스 처리, 이슈 분류, CI 자동 복구(self-healing) 기능을 포함하는 광범위한 GitHub 자동화 레이어를 제공합니다.
 
-Splunk 앱에는 alert action, dashboard, saved search, macro, transform, 그리고 앱 런타임에서 사용하는 Python 의존성이 포함되어 있습니다. 또한 `docs/`와 `resume/`에는 운영 및 배포 관련 문서가 있으며, `demo/`에는 예제 또는 데모 자료가 포함됩니다.
+Splunk 앱은 경보 액션(alert actions), 대시보드, 저장된 검색(saved searches), 매크로, 변환(transforms) 및 앱 런타임에 사용되는 번들 Python 의존성을 제공합니다. 저장소에는 `docs/` 및 `resume/` 아래 운영 문서와 예제용 `demo/` 영역이 포함되어 있습니다.
 
-GitHub 자동화는 총 31개의 workflow 파일로 구성되어 있습니다. 이 자동화는 GitHub Actions, reusable workflow, 보안 스캐너, PR 리뷰 자동화, 문서 생성, 릴리스 배포, CLIProxyAPI 기반 AI 보조 서비스를 통합합니다.
+GitHub 자동화는 16개의 워크플로우 파일로 구현되어 GitHub Actions, 보안 스캐너, PR 리뷰 봇, 문서 자동 생성, 릴리스 게시, 그리고 CLIProxyAPI를 통한 외부 AI 지원 서비스를 통합합니다. AI 지원 리뷰는 [qodo-ai/pr-agent](https://github.com/qodo-ai/pr-agent)를 [https://cliproxy.jclee.me/v1](https://cliproxy.jclee.me)의 로컬 프록시를 통해 라우팅하여 사용합니다.
 
 ---
 
@@ -48,53 +48,23 @@ GitHub 자동화는 총 31개의 workflow 파일로 구성되어 있습니다. �
 
 ### English
 
-- Splunk security alert application packaged under `security_alert/`
-- Custom alert action configuration through `alert_actions.conf`
-- Splunk dashboards and UI views for alert building, alert management, and data exploration
-- Saved searches, props, transforms, macros, and navigation configuration
-- Python helper scripts under `security_alert/bin/`
-- Vendored Python libraries under `security_alert/lib/python3/`
-- GitHub Actions automation for:
-  - Branch and PR creation
-  - Pull request checks and semantic PR validation
-  - AI-assisted PR review
-  - Security-focused PR review
-  - Gitleaks secret scanning
-  - CodeQL analysis
-  - Dependency review
-  - OpenSSF Scorecard checks
-  - Dependabot auto-merge
-  - Release notes and release publishing
-  - Documentation synchronization
-  - Issue classification and backfill
-  - CI failure issue creation
-  - CI auto-healing
-  - Repository sanity checks through reusable workflows and CI gates
+- **Splunk Security Alert App** — Modular Splunk app (`security_alert`) with alert actions, macros, transforms, props, saved searches, and an easy alert builder UI.
+- **Dashboard Suite** — Pre-built dashboards for alert management, data exploration, and easy alert building.
+- **Bundled Python Runtime** — Vendored third-party libraries (`urllib3`, `charset_normalizer`, `idna`) under `security_alert/lib/python3/` to ensure consistent app behavior.
+- **GitHub Automation** — 16 GitHub Actions workflows covering PR review, security review, auto-merge, Dependabot handling, issue triage, release notes, release publishing, downstream health checks, CI failure-to-issue tracking, and CI auto-heal.
+- **AI-Assisted Review** — PR-Agent style reviews via CLIProxyAPI with fallback model handling.
+- **Self-Healing CI** — Workflows detect and remediate recurring CI failures automatically.
+- **Operational Documentation** — Architecture, deployment, troubleshooting, release notes, and alert repository guides.
 
 ### 한국어
 
-- `security_alert/` 아래에 패키징된 Splunk 보안 알림 앱
-- `alert_actions.conf` 기반 custom alert action 설정
-- alert builder, alert management, data explorer용 Splunk dashboard 및 UI view
-- saved search, props, transforms, macro, navigation 설정
-- `security_alert/bin/` 아래 Python helper script
-- `security_alert/lib/python3/` 아래 vendored Python 라이브러리
-- GitHub Actions 기반 자동화:
-  - branch 및 PR 생성
-  - PR check 및 semantic PR 검증
-  - AI 기반 PR 리뷰
-  - 보안 중심 PR 리뷰
-  - Gitleaks secret scanning
-  - CodeQL 분석
-  - dependency review
-  - OpenSSF Scorecard 점검
-  - Dependabot 자동 병합
-  - release note 생성 및 release publishing
-  - 문서 동기화
-  - issue classification 및 backfill
-  - CI failure issue 생성
-  - CI auto-healing
-  - reusable workflow 및 CI gate 기반 저장소 sanity check
+- **Splunk 보안 경보 앱** — `security_alert` 모듈식 Splunk 앱. 경보 액션, 매크로, 변환, props, 저장된 검색 및 easy alert builder UI 포함.
+- **대시보드 스위트** — 경보 관리, 데이터 탐색, easy alert building용 사전 구축 대시보드 제공.
+- **번들 Python 런타임** — `security_alert/lib/python3/` 아래에 벤더링된 써드파티 라이브러리(`urllib3`, `charset_normalizer`, `idna`)로 일관된 앱 동작 보장.
+- **GitHub 자동화** — PR 리뷰, 보안 리뷰, 자동 머지, Dependabot 처리, 이슈 분류, 릴리스 노트, 릴리스 게시, 다운스트림 헬스 체크, CI 실패 → 이슈 추적, CI 자동 복구를 다루는 16개의 GitHub Actions 워크플로우.
+- **AI 지원 리뷰** — CLIProxyAPI를 통한 PR-Agent 스타일 리뷰와 폴백 모델 처리.
+- **자가 복구 CI** — 반복되는 CI 실패를 자동 감지하고 복구하는 워크플로우.
+- **운영 문서** — 아키텍처, 배포, 트러블슈팅, 릴리스 노트, 알림 저장소 가이드 포함.
 
 ---
 
@@ -102,172 +72,139 @@ GitHub 자동화는 총 31개의 workflow 파일로 구성되어 있습니다. �
 
 ### English
 
-The repository has two major concerns:
-
-1. Splunk application source and documentation.
-2. GitHub automation workflows that maintain repository quality, security, releases, and documentation.
-
-AI-assisted automation uses CLIProxyAPI as the public API endpoint. PR review automation may use Qodo PR Agent where configured.
+The system is composed of two cooperating layers: the **Splunk app** consumed by Splunk Enterprise, and the **GitHub automation** that maintains this repository. PR review requests are routed to the PR-Agent service via CLIProxyAPI, which exposes an OpenAI-compatible endpoint at `https://cliproxy.jclee.me/v1`. CI failures generate issues automatically, and the auto-heal workflow attempts remediation.
 
 ### 한국어
 
-이 저장소는 크게 두 영역으로 구성됩니다.
-
-1. Splunk 애플리케이션 소스 및 문서.
-2. 저장소 품질, 보안, 릴리스, 문서를 유지하는 GitHub 자동화 workflow.
-
-AI 보조 자동화는 CLIProxyAPI public endpoint를 사용합니다. PR 리뷰 자동화는 설정에 따라 Qodo PR Agent를 사용할 수 있습니다.
+이 시스템은 두 개의 협력 레이어로 구성됩니다: Splunk Enterprise에서 사용되는 **Splunk 앱**과 이 저장소를 유지 관리하는 **GitHub 자동화**입니다. PR 리뷰 요청은 CLIProxyAPI의 OpenAI 호환 엔드포인트 `https://cliproxy.jclee.me/v1`을 통해 PR-Agent 서비스로 라우팅됩니다. CI 실패는 자동으로 이슈를 생성하며 자동 복구 워크플로우가 해결을 시도합니다.
 
 ```mermaid
-flowchart TD
-    Dev[Developer<br/>Contributor] --> GitHub[GitHub Repository]
-    GitHub --> Actions[GitHub Actions<br/>31 workflow files]
+flowchart LR
+    Dev["Developer / 개발자"]
+    GH["GitHub Repository<br/>(this repo)"]
 
-    Actions --> PR[PR Automation<br/>checks, review, merge]
-    Actions --> Sec[Security Automation<br/>Gitleaks, CodeQL, dependency review, Scorecard]
-    Actions --> Docs[Documentation Automation<br/>README, docs sync, release notes]
-    Actions --> Issues[Issue Automation<br/>classification, backfill, CI failure issues]
-    Actions --> Release[Release Automation<br/>notes and publishing]
+    subgraph WF["GitHub Actions Workflows / 워크플로우"]
+        PR["10_pr-review.yml<br/>14_bot-auto-fix.yml<br/>11_security-pr-review.yml"]
+        MERGE["12_dependabot-auto-merge.yml<br/>13_pr-auto-merge.yml<br/>15_merged-pr-cleanup.yml"]
+        ISSUE["02_issue-to-branch.yml<br/>19_issue-backfill.yml<br/>91_issue-classification.yml<br/>37_ci-failure-issues.yml"]
+        REL["24_release-notes.yml<br/>25_release-publish.yml<br/>29_downstream-health-check.yml"]
+        HEAL["60_ci-auto-heal.yml<br/>ci.yml"]
+        BR["01_branch-to-pr.yml"]
+    end
 
-    PR --> CLIProxy["CLIProxyAPI<br/>https://cliproxy.jclee.me/v1<br/>primary model: gpt-5.5<br/>fallback: minimax-m3"]
-    PR --> Qodo["Qodo PR Agent<br/>qodo-ai/pr-agent"]
+    Proxy["CLIProxyAPI<br/>https://cliproxy.jclee.me/v1"]
+    PRAgent["qodo-ai/pr-agent<br/>(AI Review)"]
 
-    GitHub --> SplunkApp[Splunk App Source<br/>security_alert/]
-    SplunkApp --> SplunkRuntime[Splunk Runtime<br/>alert actions, dashboards, saved searches]
-    SplunkRuntime --> ExternalWebhook[External Notification Target<br/>Slack or webhook integration]
+    Splunk["Splunk Enterprise<br/>+ security_alert app"]
+    Dash["Alert Dashboards<br/>alert-management-dashboard<br/>data-explorer-dashboard<br/>easy_alert_builder"]
 
-    Actions --> BotPortal["Bot Portal<br/>https://bot.jclee.me"]
+    Dev -- "push / PR / issue" --> GH
+    GH --> BR
+    BR --> PR
+    PR -- "review request" --> Proxy
+    Proxy --> PRAgent
+    PRAgent -- "comments / suggestions" --> GH
+    PR --> MERGE
+    GH --> ISSUE
+    GH --> REL
+    GH --> HEAL
+    Splunk --> Dash
 ```
 
 ---
 
 ## Automation Inventory | 자동화 인벤토리
 
-### Summary | 요약
+### English
 
-| Category | Count | 한국어 설명 |
-|---|---:|---|
-| GitHub Actions workflows | 31 | GitHub Actions workflow 파일 |
-| Go automation tools | 0 | Go 기반 자동화 도구 없음 |
-| Python helper scripts in app | 3 | Splunk 앱 내부 helper script |
-| Reusable workflow files | 3 | 다른 workflow에서 호출 가능한 reusable workflow |
+The repository contains **16 GitHub Actions workflow files** (numbered by lifecycle phase) plus **0 Go-based automation tools** in this checkout. All workflows live alongside the application code and are triggered by GitHub events such as `push`, `pull_request`, `issues`, `schedule`, and `workflow_dispatch`.
 
-### GitHub Actions Workflow Files | GitHub Actions 워크플로우 파일
+### Workflow Files | 워크플로우 파일 목록
 
-The following workflow files exist on disk and are listed with their real filenames.
-
-아래 workflow 파일명은 실제 on-disk 파일명을 그대로 표시합니다.
-
-| File | Purpose |
-|---|---|
-| `01_branch-to-pr.yml` | Creates or manages pull requests from automation-created branches. |
-| `02_issue-to-branch.yml` | Creates branches from issues or issue-driven automation events. |
-| `03_pr-checks.yml` | Runs pull request validation and repository checks. |
-| `04_actionlint.yml` | Lints GitHub Actions workflow syntax and structure. |
-| `05_gitleaks.yml` | Scans repository content for leaked secrets using Gitleaks. |
-| `06_codeql.yml` | Runs CodeQL security analysis. |
-| `07_dependency-review.yml` | Reviews dependency changes for known security risks. |
-| `08_scorecard.yml` | Runs repository security posture checks using OpenSSF Scorecard. |
-| `09_semantic-pr.yml` | Validates pull request title or metadata against semantic conventions. |
-| `10_pr-review.yml` | Performs automated pull request review, including AI-assisted review where configured. |
-| `11_security-pr-review.yml` | Performs security-focused review for pull requests. |
-| `12_dependabot-auto-merge.yml` | Automatically merges eligible Dependabot pull requests. |
-| `13_pr-auto-merge.yml` | Automatically merges pull requests that satisfy repository policy. |
-| `14_bot-auto-fix.yml` | Applies automated fixes generated by bot workflows. |
-| `15_merged-pr-cleanup.yml` | Cleans up branches or metadata after pull requests are merged. |
-| `19_issue-backfill.yml` | Backfills issue metadata, labels, or automation state. |
-| `20_readme-gen.yml` | Generates or refreshes README content. Primary model: `gpt-5.5`; fallback: `minimax-m3` through CLIProxyAPI. |
-| `21_docs-sync.yml` | Synchronizes documentation content. |
-| `24_release-notes.yml` | Generates release notes. |
-| `25_release-publish.yml` | Publishes releases. |
-| `29_downstream-health-check.yml` | Checks downstream service or integration health. |
-| `37_ci-failure-issues.yml` | Creates or updates issues for CI failures. |
-| `42_reusable-docs-sync.yml` | Reusable documentation synchronization workflow. |
-| `44_reusable-pr-checks.yml` | Reusable pull request checks workflow. |
-| `45_reusable-gitleaks.yml` | Reusable Gitleaks scanning workflow. |
-| `60_ci-auto-heal.yml` | Attempts automated remediation for CI failures. |
-| `91_issue-classification.yml` | Classifies issues using automation rules or AI-assisted classification. |
-| `auto-merge.yml` | General auto-merge workflow. |
-| `ci.yml` | Main continuous integration workflow. |
-| `labeler.yml` | Applies labels based on repository configuration or file changes. |
-| `welcome.yml` | Greets or guides new contributors and issue/PR authors. |
+| # | File | Purpose (EN) | 목적 (KR) |
+|---|------|--------------|-----------|
+| 01 | `01_branch-to-pr.yml` | Converts a pushed branch into a pull request draft. | 푸시된 브랜치를 PR 초안으로 변환합니다. |
+| 02 | `02_issue-to-branch.yml` | Creates a branch from an issue when labeled. | 이슈에 라벨이 지정되면 브랜치를 생성합니다. |
+| 10 | `10_pr-review.yml` | Runs PR-Agent AI review on pull requests. | Pull request에 대해 PR-Agent AI 리뷰를 실행합니다. |
+| 11 | `11_security-pr-review.yml` | Security-focused PR review and advisory posting. | 보안 중심 PR 리뷰 및 권고 게시. |
+| 12 | `12_dependabot-auto-merge.yml` | Auto-merges Dependabot PRs after checks. | Dependabot PR을 검사 후 자동 머지합니다. |
+| 13 | `13_pr-auto-merge.yml` | Auto-merges approved PRs that pass CI. | 승되고 CI를 통과한 PR을 자동 머지합니다. |
+| 14 | `14_bot-auto-fix.yml` | Bot applies automated fixes from review comments. | 봇이 리뷰 코멘트의 자동 수정 사항을 적용합니다. |
+| 15 | `15_merged-pr-cleanup.yml` | Cleans up branches and stale references after merge. | 머지 후 브랜치 및 오래된 참조를 정리합니다. |
+| 19 | `19_issue-backfill.yml` | Backfills metadata on existing issues. | 기존 이슈의 메타데이터를 백필합니다. |
+| 24 | `24_release-notes.yml` | Generates release notes from merged PRs. | 머지된 PR로부터 릴리스 노트를 생성합니다. |
+| 25 | `25_release-publish.yml` | Publishes a GitHub Release with artifacts. | GitHub 릴리스를 아티팩트와 함께 게시합니다. |
+| 29 | `29_downstream-health-check.yml` | Validates downstream consumers after release. | 릴리스 후 다운스트림 컨슈머 상태를 검증합니다. |
+| 37 | `37_ci-failure-issues.yml` | Files an issue when CI fails on the default branch. | 기본 브랜치에서 CI 실패 시 이슈를 등록합니다. |
+| 60 | `60_ci-auto-heal.yml` | Attempts automated remediation of recurring CI failures. | 반복되는 CI 실패에 대한 자동 복구를 시도합니다. |
+| 91 | `91_issue-classification.yml` | Classifies new issues by area and priority. | 신규 이슈를 영역 및 우선순위로 분류합니다. |
+| — | `ci.yml` | Default CI pipeline: lint, build, tests. | 기본 CI 파이프라인: 린트, 빌드, 테스트. |
 
 ### Automation Tools | 자동화 도구
 
-#### GitHub Actions and External Services
+This repository currently ships with **0 Go automation tools** in this checkout. Automation is implemented entirely as GitHub Actions workflows plus the bundled Splunk app scripts under `security_alert/bin/`.
 
-| Tool or Service | Usage |
-|---|---|
-| GitHub Actions | Primary automation runtime for CI, PR review, releases, documentation, and issue workflows. |
-| CLIProxyAPI | AI and automation gateway available at `https://cliproxy.jclee.me/v1`. |
-| Qodo PR Agent | AI-assisted pull request review integration: `qodo-ai/pr-agent`. |
-| Gitleaks | Secret scanning. |
-| CodeQL | Static security analysis. |
-| Dependency Review | Pull request dependency risk analysis. |
-| OpenSSF Scorecard | Repository security posture analysis. |
-| actionlint | GitHub Actions workflow linting. |
-| Dependabot | Dependency update pull requests and auto-merge integration. |
+### 한국어
 
-#### Repository Scripts
-
-| File | Description |
-|---|---|
-| `security_alert/bin/safe_fmt.py` | Python helper script for safe formatting or output handling in the Splunk app. |
-| `security_alert/bin/six.py` | Compatibility helper module bundled with the Splunk app. |
-| `security_alert/bin/slack.py` | Slack-related helper script for alert notification behavior. |
-
-#### Go Automation Tools
-
-There are currently no Go automation tools in this repository.
-
-현재 이 저장소에는 Go 기반 자동화 도구가 없습니다.
+저장소에는 **16개의 GitHub Actions 워크플로우 파일**(라이프사이클 단계별 번호 부여)과 본 체크아웃에는 **Go 기반 자동화 도구가 0개** 포함되어 있습니다. 모든 워크플로우는 애플리케이션 코드와 함께 위치하며 `push`, `pull_request`, `issues`, `schedule`, `workflow_dispatch` 등 GitHub 이벤트에 의해 트리거됩니다.
 
 ---
 
 ## Repository Structure | 저장소 구조
 
-The top-level repository layout is:
+### English
 
-```text
+The top-level layout reflects the actual repository contents:
+
+### 한국어
+
+최상위 레이아웃은 실제 저장소 내용을 반영합니다:
+
+```
 /
-├── CONTRIBUTING.md
-├── LICENSE
-├── README.md
-├── resume/
+├── CONTRIBUTING.md                # Contribution guidelines
+├── LICENSE                       # Repository license
+├── README.md                     # This document
+├── resume/                       # Resumed/operations docs
 │   ├── API.md
 │   ├── ARCHITECTURE.md
 │   ├── DEPLOYMENT.md
 │   └── TROUBLESHOOTING.md
-├── docs/
+├── docs/                         # Operational documentation
 │   ├── ALERT-REPOSITORY-XWIKI.md
 │   ├── DEPLOYMENT.md
 │   ├── LEGACY-CLEANUP-REPORT.md
 │   ├── QUICK-START.md
 │   └── RELEASE-NOTES.md
-├── demo/
+├── demo/                         # Demos and examples
 │   └── README.md
-└── security_alert/
+└── security_alert/               # Splunk application package
     ├── README.md
-    ├── app.manifest
-    ├── bin/
-    ├── metadata/
-    ├── default/
-    └── lib/
+    ├── app.manifest              # Splunk app manifest
+    ├── bin/                      # Python scripts shipped with the app
+    │   ├── safe_fmt.py
+    │   ├── six.py
+    │   └── slack.py
+    ├── metadata/                 # Splunk app metadata
+    │   └── default.meta
+    └── default/                  # Splunk knowledge objects
+        ├── alert_actions.conf
+        ├── app.conf
+        ├── macros.conf
+        ├── props.conf
+        ├── savedsearches.conf
+        ├── transforms.conf
+        └── data/
+            └── ui/
+                ├── nav/default.xml
+                └── views/
+                    ├── alert-builder.xml
+                    ├── alert-management-dashboard.xml
+                    ├── data-explorer-dashboard.xml
+                    └── easy_alert_builder.xml
 ```
 
-### Key Paths | 주요 경로
-
-| Path | Description | 한국어 설명 |
-|---|---|---|
-| `security_alert/` | Splunk application root | Splunk 애플리케이션 루트 |
-| `security_alert/default/` | Splunk configuration files | Splunk 설정 파일 |
-| `security_alert/default/data/ui/views/` | Splunk dashboard XML views | Splunk dashboard XML view |
-| `security_alert/default/data/ui/nav/` | Splunk navigation configuration | Splunk navigation 설정 |
-| `security_alert/bin/` | Python runtime scripts | Python 런타임 script |
-| `security_alert/lib/python3/` | Vendored Python dependencies | 포함된 Python 의존성 |
-| `docs/` | Operational and release documentation | 운영 및 릴리스 문서 |
-| `resume/` | API, architecture, deployment, troubleshooting documentation | API, 아키텍처, 배포, 문제 해결 문서 |
-| `demo/` | Demo documentation or examples | 데모 문서 또는 예제 |
+> Note: Vendored third-party Python packages (`urllib3`, `charset_normalizer`, `idna`) live under `security_alert/lib/python3/`. Workflow files are tracked at the repository root or under `.github/workflows/` depending on the configuration; their **filenames** (e.g. `10_pr-review.yml`) are the canonical identifiers used throughout this README.
 
 ---
 
@@ -275,231 +212,103 @@ The top-level repository layout is:
 
 ### English
 
-Use this section to inspect, package, or deploy the Splunk app locally.
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd <repository-name>
+   ```
 
-#### 1. Clone the repository
+2. **Review the Splunk app**
+   - Inspect `security_alert/default/app.conf` for app metadata.
+   - Inspect `security_alert/default/alert_actions.conf` and `savedsearches.conf` for alert definitions.
 
-```bash
-git clone <repository-url>
-cd <repository-directory>
-```
+3. **Install into Splunk**
+   - Copy the `security_alert/` directory into `$SPLUNK_HOME/etc/apps/`.
+   - Restart Splunk or run `splunk reload deploy-server`.
 
-#### 2. Inspect the Splunk app
+4. **Inspect automation**
+   - Workflows are referenced by filename (e.g. `10_pr-review.yml`, `13_pr-auto-merge.yml`).
+   - Configure repository secrets as needed (`CLI_PROXY_TOKEN`, GitHub token, etc.).
 
-```bash
-find security_alert -maxdepth 3 -type f | sort
-```
-
-#### 3. Review Splunk configuration
-
-```bash
-ls -la security_alert/default
-cat security_alert/default/app.conf
-cat security_alert/default/alert_actions.conf
-```
-
-#### 4. Package the app
-
-```bash
-tar \
-  --exclude='.git' \
-  --exclude='*.pyc' \
-  --exclude='__pycache__' \
-  -czf security_alert.tgz \
-  security_alert
-```
-
-#### 5. Install in Splunk
-
-Install the generated `security_alert.tgz` through Splunk Web or copy the `security_alert/` directory to your Splunk apps directory.
-
-Example placeholder path:
-
-```bash
-cp -R security_alert <splunk-home>/etc/apps/security_alert
-```
-
-Restart Splunk if required by your environment.
+5. **Read operational docs**
+   - See `docs/QUICK-START.md` and `docs/DEPLOYMENT.md` for the canonical deployment guide.
 
 ### 한국어
 
-이 섹션은 Splunk 앱을 로컬에서 확인, 패키징, 배포하는 기본 절차를 설명합니다.
+1. **저장소 클론**
+   ```bash
+   git clone <repository-url>
+   cd <repository-name>
+   ```
 
-#### 1. 저장소 복제
+2. **Splunk 앱 검토**
+   - `security_alert/default/app.conf`에서 앱 메타데이터를 확인합니다.
+   - `security_alert/default/alert_actions.conf` 및 `savedsearches.conf`에서 경보 정의를 확인합니다.
 
-```bash
-git clone <repository-url>
-cd <repository-directory>
-```
+3. **Splunk에 설치**
+   - `security_alert/` 디렉터리를 `$SPLUNK_HOME/etc/apps/`로 복사합니다.
+   - Splunk를 재시작하거나 `splunk reload deploy-server`를 실행합니다.
 
-#### 2. Splunk 앱 구조 확인
+4. **자동화 검토**
+   - 워크플로우는 파일명(예: `10_pr-review.yml`, `13_pr-auto-merge.yml`)으로 참조됩니다.
+   - 필요에 따라 저장소 시크릿(`CLI_PROXY_TOKEN`, GitHub token 등)을 설정합니다.
 
-```bash
-find security_alert -maxdepth 3 -type f | sort
-```
-
-#### 3. Splunk 설정 확인
-
-```bash
-ls -la security_alert/default
-cat security_alert/default/app.conf
-cat security_alert/default/alert_actions.conf
-```
-
-#### 4. 앱 패키징
-
-```bash
-tar \
-  --exclude='.git' \
-  --exclude='*.pyc' \
-  --exclude='__pycache__' \
-  -czf security_alert.tgz \
-  security_alert
-```
-
-#### 5. Splunk에 설치
-
-생성된 `security_alert.tgz`를 Splunk Web을 통해 설치하거나 `security_alert/` 디렉터리를 Splunk apps 디렉터리로 복사합니다.
-
-예시 placeholder 경로:
-
-```bash
-cp -R security_alert <splunk-home>/etc/apps/security_alert
-```
-
-환경에 따라 Splunk 재시작이 필요할 수 있습니다.
+5. **운영 문서 확인**
+   - 표준 배포 가이드는 `docs/QUICK-START.md` 및 `docs/DEPLOYMENT.md`를 참조하세요.
 
 ---
 
 ## Local Development | 로컬 개발
 
-### Prerequisites | 사전 요구사항
+### English
 
-| Requirement | Purpose |
-|---|---|
-| Git | Source control |
-| Python 3 | Script inspection and local checks |
-| tar | App packaging |
-| Splunk development or test instance | Runtime validation |
-| GitHub CLI, optional | PR and issue workflow testing |
+- **Splunk app changes** — Edit `.conf` files under `security_alert/default/`. Restart Splunk or reload the app to pick up changes.
+- **Alert actions** — Modify Python scripts in `security_alert/bin/`. Test by triggering the corresponding alert action.
+- **Dashboards** — Modify Simple XML in `security_alert/default/data/ui/views/*.xml`. Validate by reloading the dashboard.
+- **Workflows** — Edit YAML files in place. Trigger manually via `workflow_dispatch` or by pushing to a test branch.
+- **Dependencies** — Vendored Python packages under `security_alert/lib/python3/` should not be modified directly; rebuild only when an upstream security fix is required.
 
-### Recommended Local Checks | 권장 로컬 점검
+### 한국어
 
-#### Validate Python syntax
-
-```bash
-python3 -m py_compile security_alert/bin/safe_fmt.py
-python3 -m py_compile security_alert/bin/six.py
-python3 -m py_compile security_alert/bin/slack.py
-```
-
-#### Search for accidental private data
-
-```bash
-grep -RIn \
-  --exclude-dir='.git' \
-  --exclude='*.pyc' \
-  'password\|secret\|token\|PRIVATE KEY' \
-  .
-```
-
-#### Check Splunk configuration files
-
-```bash
-find security_alert/default -type f -name '*.conf' -print -exec sed -n '1,120p' {} \;
-```
-
-#### Build a local package
-
-```bash
-rm -f security_alert.tgz
-tar \
-  --exclude='.git' \
-  --exclude='*.pyc' \
-  --exclude='__pycache__' \
-  -czf security_alert.tgz \
-  security_alert
-ls -lh security_alert.tgz
-```
-
-### Development Notes | 개발 참고사항
-
-- Do not commit generated `.pyc` files or local Splunk runtime artifacts.
-- Keep Splunk configuration in `security_alert/default/` deterministic and reviewable.
-- Avoid committing environment-specific hostnames, credentials, tokens, private IP addresses, or container identifiers.
-- Keep documentation synchronized with changes under `security_alert/`.
-- For automation changes, validate workflow syntax before merging.
+- **Splunk 앱 변경** — `security_alert/default/` 아래 `.conf` 파일을 편집합니다. Splunk를 재시작하거나 앱을 리로드하여 변경 사항을 적용합니다.
+- **경보 액션** — `security_alert/bin/`의 Python 스크립트를 수정합니다. 해당 경보 액션을 트리거하여 테스트합니다.
+- **대시보드** — `security_alert/default/data/ui/views/*.xml`의 Simple XML을 수정합니다. 대시보드를 리로드하여 검증합니다.
+- **워크플로우** — YAML 파일을 직접 편집합니다. `workflow_dispatch`로 수동 트리거하거나 테스트 브랜치에 푸시합니다.
+- **의존성** — `security_alert/lib/python3/`의 벤더링된 Python 패키지는 직접 수정하지 마십시오. 업스트림 보안 수정이 필요한 경우에만 재빌드합니다.
 
 ---
 
 ## Commands Reference | 명령어 참조
 
-### Repository Inspection | 저장소 확인
+### English
 
-```bash
-# Show top-level files and directories
-find . -maxdepth 2 -type f | sort
+Commonly used commands when working with this repository:
 
-# Show Splunk app files
-find security_alert -type f | sort
+| Command | Purpose |
+|---------|---------|
+| `git clone <repo-url>` | Clone the repository locally. |
+| `git checkout -b feat/<name>` | Create a feature branch. |
+| `git push origin feat/<name>` | Push a branch; `01_branch-to-pr.yml` will draft a PR. |
+| `gh pr create --fill` | Open a pull request; `10_pr-review.yml` will review. |
+| `gh issue create --label triage` | Open an issue; `02_issue-to-branch.yml` may spawn a branch. |
+| `splunk reload deploy-server` | Reload Splunk apps on the deployer. |
+| `python3 security_alert/bin/safe_fmt.py` | Run the safe formatter helper. |
+| `python3 security_alert/bin/slack.py` | Run the Slack notifier helper. |
 
-# Show documentation files
-find docs resume demo -type f | sort
-```
+### 한국어
 
-### Splunk App Packaging | Splunk 앱 패키징
+이 저장소 작업 시 자주 사용되는 명령어:
 
-```bash
-# Create a distributable package
-tar \
-  --exclude='.git' \
-  --exclude='*.pyc' \
-  --exclude='__pycache__' \
-  -czf security_alert.tgz \
-  security_alert
-```
-
-### Python Checks | Python 점검
-
-```bash
-# Compile all app Python files
-python3 -m compileall security_alert/bin security_alert/lib/python3
-
-# Compile only custom scripts
-python3 -m py_compile security_alert/bin/*.py
-```
-
-### Documentation Checks | 문서 점검
-
-```bash
-# List Markdown files
-find . -name '*.md' -type f | sort
-
-# Search for TODO markers
-grep -RIn 'TODO\|FIXME' --include='*.md' .
-```
-
-### GitHub Workflow Checks | GitHub workflow 점검
-
-```bash
-# List workflow files
-find .github/workflows -maxdepth 1 -type f -name '*.yml' -printf '%f\n' | sort
-
-# If actionlint is installed locally
-actionlint .github/workflows/*.yml
-```
-
-### Security Hygiene | 보안 위생 점검
-
-```bash
-# Basic local pattern scan
-grep -RIn \
-  --exclude-dir='.git' \
-  --exclude='*.pyc' \
-  --exclude='*.tgz' \
-  'BEGIN PRIVATE KEY\|password=\|token=\|secret=' \
-  .
-```
+| 명령어 | 목적 |
+|--------|------|
+| `git clone <repo-url>` | 저장소를 로컬에 클론합니다. |
+| `git checkout -b feat/<name>` | 기능 브랜치를 생성합니다. |
+| `git push origin feat/<name>` | 브랜치를 푸시하면 `01_branch-to-pr.yml`이 PR 초안을 만듭니다. |
+| `gh pr create --fill` | Pull request를 열고 `10_pr-review.yml`이 리뷰를 수행합니다. |
+| `gh issue create --label triage` | 이슈를 열면 `02_issue-to-branch.yml`이 브랜치를 생성할 수 있습니다. |
+| `splunk reload deploy-server` | Splunk deployer에서 앱을 리로드합니다. |
+| `python3 security_alert/bin/safe_fmt.py` | safe formatter 헬퍼를 실행합니다. |
+| `python3 security_alert/bin/slack.py` | Slack 알림 헬퍼를 실행합니다. |
 
 ---
 
@@ -507,112 +316,52 @@ grep -RIn \
 
 ### English
 
-Please read `CONTRIBUTING.md` before submitting changes.
+Contributions are welcome. Please follow these steps:
 
-#### Contribution workflow
-
-1. Open or select an issue.
-2. Create a branch for your change.
-3. Update code, Splunk configuration, and documentation together.
-4. Run local validation commands.
-5. Open a pull request.
-6. Ensure all required checks pass.
-7. Address automated review comments.
-8. Wait for maintainer review or auto-merge eligibility.
-
-#### Pull request expectations
-
-- Keep pull requests focused and small enough to review.
-- Use clear titles that satisfy semantic PR rules where applicable.
-- Explain changes to Splunk configuration files.
-- Include screenshots or notes for dashboard/UI changes when possible.
-- Update `docs/`, `resume/`, or `security_alert/README.md` when behavior changes.
-- Do not include secrets, credentials, private endpoints, private IP addresses, or environment-specific identifiers.
-
-#### Automation-aware contribution notes
-
-This repository has extensive automation. A pull request may trigger:
-
-- `03_pr-checks.yml`
-- `04_actionlint.yml`
-- `05_gitleaks.yml`
-- `06_codeql.yml`
-- `07_dependency-review.yml`
-- `08_scorecard.yml`
-- `09_semantic-pr.yml`
-- `10_pr-review.yml`
-- `11_security-pr-review.yml`
-- `13_pr-auto-merge.yml`
-- `labeler.yml`
-- `ci.yml`
-
-Depending on the files changed, documentation, release, issue, or auto-healing workflows may also run.
+1. **Read** `CONTRIBUTING.md` for the full contribution policy.
+2. **Open or pick an issue.** New issues are auto-classified by `91_issue-classification.yml`.
+3. **Create a branch** using the convention suggested by `02_issue-to-branch.yml` (e.g. `feat/<issue-number>-<slug>`).
+4. **Implement your change** under the appropriate directory:
+   - Splunk app changes → `security_alert/`
+   - Documentation → `docs/` or `resume/`
+   - Automation changes → corresponding workflow YAML file
+5. **Open a pull request.** `10_pr-review.yml` will request a review and `11_security-pr-review.yml` will run a security pass.
+6. **Address review feedback.** `14_bot-auto-fix.yml` may apply suggested fixes automatically.
+7. **Merge.** When checks pass and approvals are in place, `13_pr-auto-merge.yml` handles the merge.
+8. **Post-merge** — `15_merged-pr-cleanup.yml` cleans up the branch. Releases are produced via `24_release-notes.yml` and `25_release-publish.yml`.
 
 ### 한국어
 
-변경 사항을 제출하기 전에 `CONTRIBUTING.md`를 확인해 주세요.
+기여를 환영합니다. 다음 절차를 따라 주십시오:
 
-#### 기여 절차
-
-1. 이슈를 생성하거나 기존 이슈를 선택합니다.
-2. 변경 사항용 branch를 생성합니다.
-3. 코드, Splunk 설정, 문서를 함께 수정합니다.
-4. 로컬 검증 명령을 실행합니다.
-5. pull request를 생성합니다.
-6. 필수 check가 모두 통과하는지 확인합니다.
-7. 자동 리뷰 코멘트를 반영합니다.
-8. maintainer 리뷰 또는 auto-merge 조건 충족을 기다립니다.
-
-#### Pull request 기준
-
-- PR은 명확하고 리뷰 가능한 범위로 유지합니다.
-- semantic PR 규칙이 적용되는 경우 명확한 제목을 사용합니다.
-- Splunk configuration 변경 사항은 설명을 포함합니다.
-- dashboard 또는 UI 변경 시 가능하면 screenshot 또는 설명을 포함합니다.
-- 동작이 변경되면 `docs/`, `resume/`, 또는 `security_alert/README.md`를 업데이트합니다.
-- secret, credential, private endpoint, private IP address, 환경 전용 식별자를 포함하지 않습니다.
-
-#### 자동화 관련 참고
-
-이 저장소에는 많은 자동화가 적용되어 있습니다. PR 생성 시 다음 workflow가 실행될 수 있습니다.
-
-- `03_pr-checks.yml`
-- `04_actionlint.yml`
-- `05_gitleaks.yml`
-- `06_codeql.yml`
-- `07_dependency-review.yml`
-- `08_scorecard.yml`
-- `09_semantic-pr.yml`
-- `10_pr-review.yml`
-- `11_security-pr-review.yml`
-- `13_pr-auto-merge.yml`
-- `labeler.yml`
-- `ci.yml`
-
-변경 파일에 따라 문서, 릴리스, 이슈, auto-healing 관련 workflow도 추가로 실행될 수 있습니다.
-
----
-
-## Documentation | 문서
-
-Additional documentation is available in:
-
-- `docs/QUICK-START.md`
-- `docs/DEPLOYMENT.md`
-- `docs/RELEASE-NOTES.md`
-- `docs/ALERT-REPOSITORY-XWIKI.md`
-- `docs/LEGACY-CLEANUP-REPORT.md`
-- `resume/API.md`
-- `resume/ARCHITECTURE.md`
-- `resume/DEPLOYMENT.md`
-- `resume/TROUBLESHOOTING.md`
-- `security_alert/README.md`
-- `demo/README.md`
+1. 전체 기여 정책은 **`CONTRIBUTING.md`를 먼저 읽어 주십시오.**
+2. **이슈를 열거나 선택합니다.** 신규 이슈는 `91_issue-classification.yml`에 의해 자동 분류됩니다.
+3. **`02_issue-to-branch.yml`이 제안하는 규칙(예: `feat/<이슈번호>-<slug>`)에 따라 브랜치를 생성합니다.**
+4. **변경 사항을 적절한 디렉터리에 구현합니다:**
+   - Splunk 앱 변경 → `security_alert/`
+   - 문서 → `docs/` 또는 `resume/`
+   - 자동화 변경 → 해당 워크플로우 YAML 파일
+5. **Pull request를 엽니다.** `10_pr-review.yml`이 리뷰를 요청하고 `11_security-pr-review.yml`이 보안 패스를 실행합니다.
+6. **리뷰 피드백을 반영합니다.** `14_bot-auto-fix.yml`이 제안된 수정을 자동 적용할 수 있습니다.
+7. **머지합니다.** 검사를 통과하고 승인이 완료되면 `13_pr-auto-merge.yml`이 머지를 처리합니다.
+8. **머지 후** — `15_merged-pr-cleanup.yml`이 브랜치를 정리합니다. 릴리스는 `24_release-notes.yml` 및 `25_release-publish.yml`을 통해 생성됩니다.
 
 ---
 
 ## License | 라이선스
 
-See [`LICENSE`](./LICENSE).
+See [`LICENSE`](./LICENSE) for the repository license. All third-party Python packages vendored under `security_alert/lib/python3/` retain their original licenses (see each `*.dist-info/METADATA` and `licenses/` subdirectory for details).
 
-라이선스 정보는 [`LICENSE`](./LICENSE)를 확인하세요.
+저장소 라이선스는 [`LICENSE`](./LICENSE)를 참조하십시오. `security_alert/lib/python3/` 아래에 벤더링된 모든 써드파티 Python 패키지는 원래 라이선스를 유지합니다(자세한 내용은 각 `*.dist-info/METADATA` 및 `licenses/` 하위 디렉터리 참조).
+
+---
+
+## Service Endpoints | 서비스 엔드포인트
+
+| Service | URL | Purpose |
+|---------|-----|---------|
+| CLIProxyAPI | [https://cliproxy.jclee.me](https://cliproxy.jclee.me) | Local AI proxy fronting upstream models. |
+| CLIProxyAPI OpenAI-compatible endpoint | `https://cliproxy.jclee.me/v1` | Used by `10_pr-review.yml` and friends. |
+| PR-Agent reference | [qodo-ai/pr-agent](https://github.com/qodo-ai/pr-agent) | The AI review tooling integrated via the proxy. |
+
+> README generated by gpt-5.5 (fallback: minimax-m3 via CLIProxyAPI).
