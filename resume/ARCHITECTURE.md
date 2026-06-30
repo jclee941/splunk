@@ -6,36 +6,25 @@
 
 > Component-level architecture showing data flow across system boundaries.
 
-```mermaid
-flowchart TB
-    subgraph Data_Sources
-        FG["FortiGate syslog"]
-    end
-    
-    subgraph Splunk_Platform
-        IDX["Splunk Index"]
-        SCH["Search Scheduler"]
-    end
-    
-    subgraph Security_Alert_App
-        MAC["Macros"]
-        ALT["Alert Definitions"]
-        STT["State Trackers"]
-        PYT["Python Scripts"]
-    end
-    
-    subgraph Notifications
-        SLK["Slack Webhook"]
-    end
-    
-    FG --> IDX
-    IDX --> SCH
-    SCH --> ALT
-    ALT --> MAC
-    ALT --> STT
-    ALT --> PYT
-    PYT --> SLK
-```
+#### Diagram summary 1
+
+- Type: flowchart
+- Component: FortiGate syslog (FG)
+- Component: Splunk Index (IDX)
+- Component: Search Scheduler (SCH)
+- Component: Macros (MAC)
+- Component: Alert Definitions (ALT)
+- Component: State Trackers (STT)
+- Component: Python Scripts (PYT)
+- Component: Slack Webhook (SLK)
+- FortiGate syslog (FG) -> Splunk Index (IDX)
+- Splunk Index (IDX) -> Search Scheduler (SCH)
+- Search Scheduler (SCH) -> Alert Definitions (ALT)
+- Alert Definitions (ALT) -> Macros (MAC)
+- Alert Definitions (ALT) -> State Trackers (STT)
+- Alert Definitions (ALT) -> Python Scripts (PYT)
+- Python Scripts (PYT) -> Slack Webhook (SLK)
+
 ## Core Components
 
 ### 1. Alert Engine
@@ -61,24 +50,26 @@ flowchart TB
 ## Architecture Patterns
 
 ### State Tracking Pattern (EMS)
-```mermaid
-flowchart LR
-    E["Events"] --> CS["Current State"]
-    CS --> CP["Compare with Previous"]
-    CP --> SC{"State Changed?"}
-    SC -->|"Yes"| A["Alert + Update State"]
-    SC -->|"No"| SK["Skip"]
-```
+#### Diagram summary 2
+
+- Type: flowchart
+- Events (E) -> Current State (CS)
+- Current State (CS) -> Compare with Previous (CP)
+- Compare with Previous (CP) -> State Changed? (SC)
+- State Changed? (SC) -> Alert + Update State (A)
+- State Changed? (SC) -> Skip (SK)
+
 
 ### Alert Workflow
-```mermaid
-flowchart LR
-    SS["SPL Search"] --> EN["Enrich"]
-    EN --> DD["Deduplicate"]
-    DD --> SC["State Compare"]
-    SC --> FM["Format Message"]
-    FM --> SL["Slack"]
-```
+#### Diagram summary 3
+
+- Type: flowchart
+- SPL Search (SS) -> Enrich (EN)
+- Enrich (EN) -> Deduplicate (DD)
+- Deduplicate (DD) -> State Compare (SC)
+- State Compare (SC) -> Format Message (FM)
+- Format Message (FM) -> Slack (SL)
+
 
 ## Key Technologies
 

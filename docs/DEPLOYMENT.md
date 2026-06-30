@@ -41,25 +41,17 @@ security_alert/
 
 > Physical deployment topology showing network boundaries and data flow.
 
-```mermaid
-flowchart TB
-    subgraph Network
-        FG["FortiGate Firewall"]
-    end
-    
-    subgraph Splunk_Cluster
-        IDX["Splunk Indexer"]
-        SH["Search Head"]
-    end
-    
-    subgraph External
-        SL["Slack Workspace"]
-    end
-    
-    FG -->|"UDP 514 / syslog"| IDX
-    IDX -->|"Search"| SH
-    SH -->|"HTTPS / webhook"| SL
-```
+#### Diagram summary 1
+
+- Type: flowchart
+- Component: FortiGate Firewall (FG)
+- Component: Splunk Indexer (IDX)
+- Component: Search Head (SH)
+- Component: Slack Workspace (SL)
+- FortiGate Firewall (FG) -> Splunk Indexer (IDX)
+- Splunk Indexer (IDX) -> Search Head (SH)
+- Search Head (SH) -> Slack Workspace (SL)
+
 
 ## Prerequisites
 
