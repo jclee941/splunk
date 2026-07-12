@@ -1,176 +1,238 @@
-# Security Alert — Splunk Alerting App
+# Security Alert Manager (Splunk App) / 보안 알림 관리 (Splunk 앱)
 
-![App type: Splunk Add-on](https://img.shields.io/badge/Splunk-Add--on-blue)
-![Python: 3.x](https://img.shields.io/badge/Python-3.x-3776AB)
-![License: see LICENSE](https://img.shields.io/badge/License-See%20LICENSE-lightgrey)
-![Status: Production-ready](https://img.shields.io/badge/Status-Production--ready-brightgreen)
+> Splunk에서 보안 이벤트를 수집·정규화하고, 알림(alert)을 정의한 뒤 Slack으로 전달하는 알림 관리 앱입니다. 본 저장소는 앱 본체(`security_alert/`)와 운영 문서(`docs/`, `resume/`)를 함께 제공합니다.
 
-## 한 줄 요약
-
-Splunk 환경에서 XWiki / Slack 으로 보안 알림을 보내고, 알림 빌더 · 관리 대시보드 · 데이터 탐색기를 한 앱에서 제공하는 Splunk 추가 기능(Add-on)입니다.
-
-English (secondary): A Splunk add-on that ships security alerts to XWiki and Slack, and bundles an alert builder, an alert management dashboard, and a data explorer inside a single app.
+A Splunk add-on that defines, manages, and dispatches security alerts (with Slack delivery) from a single searchable workspace.
 
 ---
 
-## 현재 상태 / Status
+## 빠른 상태 요약 / Quick Status
 
 | 항목 | 값 |
 | --- | --- |
-| 제품 유형 | Splunk Add-on (custom app) |
-| 대상 환경 | Splunk Enterprise / Cloud (Python 3 런타임) |
-| 알림 채널 | Slack (webhook), 확장 가능한 HTTP 통합 |
-| 기본 제공 뷰 | alert-builder, alert-management-dashboard, data-explorer-dashboard, easy_alert_builder |
-| 번들 라이브러리 | urllib3, idna, charset_normalizer (오프라인 호환) |
-| 라이선스 | 저장소 `LICENSE` 참조 |
-| 테스트 | 수동 검증 (자동화 테스트 미포함) |
-| 안정성 | 프로덕션 사용 가능, 변경 시 회귀 검증 권장 |
+| 제품 종류 | Splunk App (`.conf` 기반 + 번들 Python 3) |
+| 대상 플랫폼 | Splunk Enterprise / Splunk Cloud (8.x 이상 권장) |
+| 핵심 디렉터리 | `security_alert/` (앱 본체) |
+| 알림 채널 | Slack (Webhook) |
+| 빌드 진입점 | `security_alert/app.manifest` |
+| 문서 진입점 | `docs/QUICK-START.md`, `resume/ARCHITECTURE.md` |
+| 라이선스 | `LICENSE` |
+| 기여 가이드 | `CONTRIBUTING.md` |
+| 데모 | `demo/README.md` |
+| 운영 상태 | 프로덕션 사용 가능 (단, 업그레이드 시 `docs/RELEASE-NOTES.md` 확인) |
 
-## 동작 흐름 / How It Works
+## 한눈에 보는 흐름 / Flow at a Glance
 
-1. Splunk 가 저장된 검색(`savedsearches.conf`)을 트리거합니다.
-2. 알림 액션(`alert_actions.conf`)이 활성화되어 `bin/safe_fmt.py` 와 `bin/slack.py` 를 호출합니다.
-3. 페이로드는 `macros.conf` 와 `transforms.conf` 로 정규화됩니다.
-4. HTTP 전송은 번들된 `urllib3` + `idna` + `charset_normalizer` 로 처리됩니다.
-5. 결과는 앱 내 대시보드(alert-management-dashboard 등)에서 추적됩니다.
+1. Splunk 인덱서가 원본 로그를 색인합니다.
+2. `security_alert/default/savedsearches.conf`가 트리거 조건을 정의합니다.
+3. `security_alert/default/alert_actions.conf`가 매칭 시 동작을 지정합니다.
+4. `security_alert/bin/slack.py`가 메시지를 포맷팅(`safe_fmt.py`) 후 Slack Webhook으로 전송합니다.
+5. `security_alert/default/data/ui/views/` 대시보드에서 알림을 조회·관리합니다.
 
-> 운영자는 다음 한 줄로 상태를 확인합니다: Splunk UI → 앱 "Security Alert" → Alert Management Dashboard.
+> 운영 단계, 트러블슈팅, 레거시 정리 내역은 각 문서 파일을 그대로 따라가세요.
 
 ---
 
-## 패키지 구성 / Package Contents
+## 목차 / Table of Contents
+
+1. [용도와 사용자 / Purpose and Audience](#용도와-사용자--purpose-and-audience)
+2. [주요 기능 / Features](#주요-기능--features)
+3. [저장소 구성 / Package Contents](#저장소-구성--package-contents)
+4. [아키텍처 / Architecture](#아키텍처--architecture)
+5. [빠른 시작 / Quickstart](#빠른-시작--quickstart)
+6. [설정 / Configuration](#설정--configuration)
+7. [명령·엔트리포인트 / Commands and Entry Points](#명령·엔트리포인트--commands-and-entry-points)
+8. [로컬 개발 / Local Development](#로컬-개발--local-development)
+9. [테스트 / Testing](#테스트--testing)
+10. [기여 / Contributing](#기여--contributing)
+11. [유지보수자 / Maintainers](#유지보수자--maintainers)
+12. [추가 문서 / Further Documentation](#추가-문서--further-documentation)
+13. [라이선스 / License](#라이선스--license)
+
+---
+
+## 용도와 사용자 / Purpose and Audience
+
+- **용도 / Purpose**: Splunk의 보안 이벤트에서 알림 규칙을 정의·실행하고, 그 결과를 Slack으로 전달하며, 대시보드에서 후속 분석을 수행하는 앱입니다.
+- **대상 사용자 / Audience**:
+  - SOC 분석가, 보안 엔지니어
+  - Splunk 관리자(앱 설치·업그레이드 담당)
+  - 알림 파이프라인을 코드 형태로 검토하려는 플랫폼 팀
+
+## 주요 기능 / Features
+
+| 기능 | 설명 |
+| --- | --- |
+| 알림 빌더 | `alert-builder`, `easy_alert_builder` 뷰로 알림 규칙 생성 |
+| 알림 관리 | `alert-management-dashboard`에서 활성 알림 조회·해제 |
+| 데이터 탐색 | `data-explorer-dashboard`에서 원본 이벤트 검색 |
+| Slack 전달 | `bin/slack.py`가 Webhook으로 메시지 발송 |
+| 안전한 포맷팅 | `bin/safe_fmt.py`로 메시지 이스케이프 처리 |
+| 필드 추출 | `default/props.conf`, `default/transforms.conf`로 정규화 |
+| 매크로 | `default/macros.conf`로 재사용 검색 토큰 제공 |
+| 탐색 UI | `data/ui/nav/default.xml`로 내비게이션 정의 |
+
+## 저장소 구성 / Package Contents
+
+실제 최상위 구조를 반영한 요약입니다.
 
 | 경로 | 역할 |
 | --- | --- |
-| `security_alert/app.conf` | 앱 메타데이터(라벨, 버전, 소유자) |
-| `security_alert/app.manifest` | Splunk 호환성 / 의존성 선언 |
-| `security_alert/default/alert_actions.conf` | 알림 액션 정의 |
-| `security_alert/default/savedsearches.conf` | 저장된 검색(트리거 원천) |
-| `security_alert/default/macros.conf` | 검색 매크로(공통 정규식·필터) |
-| `security_alert/default/transforms.conf` | 필드 추출 및 재작성 규칙 |
-| `security_alert/default/props.conf` | 인덱서 / 검색 시간 필드 설정 |
-| `security_alert/default/data/ui/nav/default.xml` | 내비게이션 메뉴 |
-| `security_alert/default/data/ui/views/*.xml` | 대시보드 및 빌더 뷰 |
-| `security_alert/bin/safe_fmt.py` | 알림 페이로드 포매터 |
-| `security_alert/bin/slack.py` | Slack 전송 스크립트 |
-| `security_alert/bin/six.py` | Py2/P3 호환 헬퍼 |
-| `security_alert/lib/python3/*` | 오프라인용 외부 의존성 |
-| `security_alert/metadata/default.meta` | 앱 권한 / 가시성 |
-| `docs/` | 배포·릴리스·레거시 정리 문서 |
-| `resume/` | 이전 아키텍처·API·트러블슈팅 스냅샷 |
+| `security_alert/app.manifest` | Splunk 앱 메타데이터 |
+| `security_alert/default/app.conf` | 앱 설정(라벨, 권한) |
+| `security_alert/default/alert_actions.conf` | 알림 동작 정의 |
+| `security_alert/default/savedsearches.conf` | 저장된 검색(트리거) |
+| `security_alert/default/props.conf` | 필드/시간 추출 규칙 |
+| `security_alert/default/transforms.conf` | 필드 변환 규칙 |
+| `security_alert/default/macros.conf` | 재사용 매크로 |
+| `security_alert/default/data/ui/views/*.xml` | 대시보드/뷰 |
+| `security_alert/default/data/ui/nav/default.xml` | 내비게이션 |
+| `security_alert/bin/slack.py` | Slack Webhook 발송 스크립트 |
+| `security_alert/bin/safe_fmt.py` | 메시지 포맷 유틸리티 |
+| `security_alert/bin/six.py` | Python 2/3 호환 헬퍼 |
+| `security_alert/metadata/default.meta` | 권한/소유자 메타 |
+| `security_alert/lib/python3/urllib3/` | 번들 HTTP 클라이언트 |
+| `security_alert/lib/python3/charset_normalizer-*/` | 번들 인코딩 감지 |
+| `security_alert/lib/python3/idna-*/` | 번들 IDN 변환 |
+| `docs/` | 운영·릴리스 문서 |
+| `resume/` | 이관·아키텍처·API 문서 |
+| `demo/` | 데모/시연 자료 |
+| `CONTRIBUTING.md` | 기여 절차 |
+| `LICENSE` | 라이선스 원문 |
 
-## 먼저 읽을 파일 / First Files to Read
+## 아키텍처 / Architecture
 
-| 순서 | 파일 | 왜 읽어야 하는가 |
+| 계층 | 구성요소 | 설명 |
 | --- | --- | --- |
-| 1 | `security_alert/app.conf` | 앱 ID, 라벨, 버전 확인 |
-| 2 | `security_alert/default/alert_actions.conf` | 알림 액션이 무엇을 호출하는지 파악 |
-| 3 | `security_alert/bin/slack.py` | 실제 외부 호출 로직 위치 |
-| 4 | `security_alert/default/savedsearches.conf` | 트리거 검색 정의 |
-| 5 | `docs/QUICK-START.md` | 짧은 설치·동작 가이드 |
-| 6 | `docs/DEPLOYMENT.md` | 배포 절차 및 환경 변수 |
+| 입력 | Splunk 인덱서 | 원본 보안 로그 색인 |
+| 정규화 | `props.conf`, `transforms.conf` | 필드 추출·치환 |
+| 탐지 | `savedsearches.conf` | 조건 평가 및 트리거 |
+| 동작 | `alert_actions.conf`, `bin/slack.py` | Slack Webhook 호출 |
+| 포맷 | `bin/safe_fmt.py` | 메시지 안전 이스케이프 |
+| UI | `data/ui/views/*.xml` | 빌더/관리/탐색 화면 |
+| 메타 | `app.manifest`, `metadata/default.meta` | 앱 식별·권한 |
 
-## 진입점 / Entry Points
+### 요청 흐름 (논리 단계)
 
-| 진입점 종류 | 위치 | 호출자 / 사용자 |
-| --- | --- | --- |
-| 알림 액션 핸들러 | `security_alert/bin/safe_fmt.py`, `security_alert/bin/slack.py` | Splunk alertd |
-| 저장된 검색 | `security_alert/default/savedsearches.conf` | Splunk scheduler |
-| UI 내비게이션 | `security_alert/default/data/ui/nav/default.xml` | Splunk Web 사용자 |
-| 빌더 뷰 | `default/data/ui/views/easy_alert_builder.xml`, `alert-builder.xml` | 알림 작성자 |
-| 관리 대시보드 | `default/data/ui/views/alert-management-dashboard.xml` | 운영자 |
-| 데이터 탐색기 | `default/data/ui/views/data-explorer-dashboard.xml` | 분석가 |
+1. 인덱서가 이벤트를 색인합니다.
+2. `savedsearches.conf`의 스케줄에 따라 검색이 실행됩니다.
+3. 매칭 결과는 `alert_actions.conf`에 정의된 동작으로 라우팅됩니다.
+4. `bin/slack.py`가 `safe_fmt.py`로 메시지를 정리한 뒤 HTTP POST로 Slack Webhook을 호출합니다.
+5. `metadata/default.meta`의 권한 정책에 따라 UI에서 알림이 노출됩니다.
 
----
+상세 다이어그램과 호출 관계는 [`resume/ARCHITECTURE.md`](resume/ARCHITECTURE.md)에서 확인하세요.
 
 ## 빠른 시작 / Quickstart
 
-운영자가 처음 5 분 안에 끝낼 수 있는 절차입니다.
+### 1. 사전 요구 사항
 
-1. 저장소 클론 후 `security_alert/` 디렉터리를 Splunk 앱 경로(`$SPLUNK_HOME/etc/apps/`)로 복사합니다.
-2. Splunk 를 재시작하거나 `splunk reload deploy-server` 로 앱을 리프레시합니다.
-3. Splunk Web → Apps → "Security Alert" 가 보이는지 확인합니다.
-4. Settings → Alert Actions 에서 "Security Alert" 액션을 활성화합니다.
-5. `bin/slack.py` 가 사용하는 Webhook URL 을 앱 설정(예: `alert_actions.conf` 의 `param.webhook_url`)에 입력합니다.
-6. `savedsearches.conf` 의 샘플 저장 검색을 활성화하고, 즉시 실행(예ecute now) 으로 메시지가 도착하는지 확인합니다.
+| 항목 | 요구 |
+| --- | --- |
+| Splunk | 8.x 이상 |
+| 디스크 | 앱 디렉터리당 충분한 여유 공간(번들 의존성 포함) |
+| 네트워크 | Splunk → Slack Webhook URL 도달 가능 |
+| 권한 | 앱 배포 권한, `metadata/default.meta`에 명시된 capability |
 
-## 사용 예시 / Usage
+### 2. 설치
 
-- 새 알림 추가: `easy_alert_builder` 뷰에서 조건 → 액션 → 채널(Slack) 순서로 저장합니다.
-- 알림 이력 확인: `alert-management-dashboard` 에서 최근 발생 시각 · 채널 · 성공 여부를 봅니다.
-- 원시 데이터 조회: `data-explorer-dashboard` 에서 시간 범위와 인덱스를 지정해 검토합니다.
-- 포맷 변경: `bin/safe_fmt.py` 의 페이로드 빌더를 수정해 카드 / 헤더 / 링크를 조정합니다.
+1. `security_alert/` 디렉터리를 `$SPLUNK_HOME/etc/apps/`에 복사합니다.
+2. Splunk를 재시작하거나 “Manage Apps”에서 새로 고침합니다.
+3. Slack Webhook URL을 앱 설정에 입력합니다(자세한 키는 `docs/QUICK-START.md` 참조).
+4. `app.conf`의 권한/라벨을 환경에 맞게 조정합니다.
+
+### 3. 첫 알림 발송
+
+1. Splunk Web에서 앱의 **Easy Alert Builder**로 이동합니다.
+2. 샘플 인덱스/소스를 선택해 규칙을 저장합니다.
+3. 저장된 검색이 트리거되면 Slack 채널에 메시지가 도달하는지 확인합니다.
+
+단계별 스크린샷과 토글 옵션은 [`docs/QUICK-START.md`](docs/QUICK-START.md)에 정리되어 있습니다.
 
 ## 설정 / Configuration
 
-| 설정 키 | 위치 | 목적 |
+| 키 | 위치 | 용도 |
 | --- | --- | --- |
-| `param.webhook_url` | `alert_actions.conf` | Slack 수신 Webhook |
-| `param.xwiki_endpoint` | `alert_actions.conf` (해당 시) | XWiki 알림 엔드포인트 |
-| `app.conf` `[install]` | `app.conf` | 설치 시 메타데이터 |
-| `default.meta` `owner = admin` | `metadata/default.meta` | 객체 권한 |
-| `transforms.conf` 룰 | `default/transforms.conf` | 필드 재작성 |
+| Slack Webhook URL | `default/app.conf` 또는 환경 변수 | 메시지 전송 대상 |
+| 알림 라벨 | `default/alert_actions.conf` | 동작 이름/표시 |
+| 트리거 조건 | `default/savedsearches.conf` | 크론/쿼리 |
+| 필드 추출 | `default/props.conf` | 시간·필드 |
+| 변환 | `default/transforms.conf` | 룩업/치환 |
+| 매크로 | `default/macros.conf` | 재사용 토큰 |
+| 권한 | `metadata/default.meta` | 역할/소유자 |
+| 앱 메타 | `app.manifest` | 버전, 작성자 |
 
-> 비밀 값(웹훅 URL, 토큰 등)은 절대 저장소에 커밋하지 마세요. Splunk 암호화된 자격 증명(`credentials.conf`) 또는 외부 시크릿 매니저를 사용하세요.
+## 명령·엔트리포인트 / Commands and Entry Points
 
-## 명령어 / Commands Reference
+| 진입점 | 용도 |
+| --- | --- |
+| `security_alert/bin/slack.py` | 알림을 Slack으로 발송 |
+| `security_alert/bin/safe_fmt.py` | 메시지 포맷 모듈 |
+| `security_alert/bin/six.py` | 호환성 헬퍼 |
+| `data/ui/views/alert-builder.xml` | 알림 규칙 빌더 UI |
+| `data/ui/views/easy_alert_builder.xml` | 간편 빌더 UI |
+| `data/ui/views/alert-management-dashboard.xml` | 알림 관리 대시보드 |
+| `data/ui/views/data-explorer-dashboard.xml` | 데이터 탐색 대시보드 |
+| `data/ui/nav/default.xml` | 앱 내비게이션 |
 
-| 명령 | 위치 | 설명 |
-| --- | --- | --- |
-| `python3 bin/safe_fmt.py` | `security_alert/bin/` | 알림 페이로드 포맷 검증(로컬 테스트) |
-| `python3 bin/slack.py` | `security_alert/bin/` | Slack 전송 단위 테스트(환경 변수 필요) |
-| `splunk reload deploy-server` | Splunk CLI | 앱 설정 리프레시 |
-| `splunk display app` | Splunk CLI | 앱 메타데이터 확인 |
+REST API와 외부 호출 명세는 [`resume/API.md`](resume/API.md)를 참고하세요.
 
 ## 로컬 개발 / Local Development
 
-- 권장 Python: 3.x (앱이 번들한 `lib/python3/` 기준).
-- Splunk 앱 심볼릭 링크로 작업하면 재시작 없이 반영됩니다.
-  - 예: `ln -s <repo>/security_alert $SPLUNK_HOME/etc/apps/security_alert`
-- UI XML 변경 후에는 Splunk Web 새로 고침 한 번으로 적용됩니다.
-- Python 스크립트 변경 후에는 `splunk reload deploy-server` 가 필요할 수 있습니다.
+| 작업 | 절차 |
+| --- | --- |
+| 코드 수정 | `$SPLUNK_HOME/etc/apps/security_alert/`에서 직접 편집 |
+| 앱 재로드 | Splunk Web → “Manage Apps” → Reload, 또는 재시작 |
+| 의존성 변경 | `security_alert/lib/python3/` 내 번들 교체 |
+| UI 변경 | `data/ui/views/*.xml` 편집 후 페이지 새로 고침 |
+| 설정 검증 | `bin/splunk btool check`로 `.conf` 무결성 확인 |
+| 문서 갱신 | `docs/`, `resume/` 하위 Markdown 수정 |
+
+개발 환경 구성은 [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md)를 참고하세요.
 
 ## 테스트 / Testing
 
-- 수동 회귀: 핵심 저장 검색을 1 회 실행해 Slack 도착 여부를 확인합니다.
-- 포맷 단위 테스트: `bin/safe_fmt.py` 를 더미 페이로드로 실행해 JSON 결과를 확인합니다.
-- 전송 단위 테스트: 임시 Webhook 으로 `bin/slack.py` 를 호출해 200 OK 를 확인합니다.
-- 자동화 테스트 프레임워크는 현재 번들되어 있지 않습니다. 추가 시 `docs/DEPLOYMENT.md` 의 체크리스트를 함께 갱신하세요.
+| 항목 | 권장 방법 |
+| --- | --- |
+| 알림 발송 | 샘플 검색을 수동 실행해 Slack 수신 확인 |
+| `.conf` 검증 | `btool check`로 문법 검사 |
+| UI | 대시보드·빌더에서 권한별로 페이지 접근 확인 |
+| 라이브러리 | `bin/slack.py` 단위 호출(드라이 런 모드) |
+| 회귀 | `docs/RELEASE-NOTES.md`의 변경 이력과 대조 |
+
+테스트 절차와 체크리스트는 [`resume/ARCHITECTURE.md`](resume/ARCHITECTURE.md)와 [`docs/QUICK-START.md`](docs/QUICK-START.md)를 함께 확인하세요.
 
 ## 기여 / Contributing
 
-기여 절차는 [`CONTRIBUTING.md`](CONTRIBUTING.md) 를 따릅니다. 핵심 규칙은 다음과 같습니다.
+1. `CONTRIBUTING.md`의 절차와 코딩 규약을 따릅니다.
+2. 변경 사항은 가능한 한 `docs/RELEASE-NOTES.md`에 한 줄로 요약합니다.
+3. 새로운 알림 동작을 추가할 때 `alert_actions.conf`, `bin/`, UI 뷰를 한 묶음으로 갱신합니다.
+4. PR 전 로컬 Splunk 인스턴스에서 스모크 테스트를 수행합니다.
 
-- 변경 전 `docs/QUICK-START.md` 의 빠른 시작이 그대로 동작하는지 확인합니다.
-- `alert_actions.conf` 와 `bin/*.py` 의 인터페이스는 시그니처 호환을 유지합니다.
-- 새 의존성을 추가할 때는 `security_alert/lib/python3/` 에 함께 번들합니다(오프라인 호환).
-- UI 변경 시 네 개의 뷰가 모두 깨지지 않는지 확인합니다.
+## 유지보수자 / Maintainers
 
-## 유지보수 / Maintainers
+| 역할 | 위치 |
+| --- | --- |
+| 코드 오너 | `security_alert/app.manifest`의 `author` 필드 |
+| 문서 오너 | `docs/`, `resume/` 하위 문서 |
+| 이슈 트래커 | 저장소 Issues 탭 |
 
-| 역할 | 책임 | 첫 번째 확인 위치 |
-| --- | --- | --- |
-| 앱 소유자 | 버전 릴리스, 권한 정책 | `app.conf`, `metadata/default.meta` |
-| 알림 채널 책임자 | Slack / XWiki 통합 | `bin/slack.py`, `bin/safe_fmt.py` |
-| UI 책임자 | 대시보드·빌더 | `data/ui/views/*.xml` |
-| 운영자 | 배포, 트러블슈팅 | `docs/DEPLOYMENT.md`, `docs/TROUBLESHOOTING.md` (resume 내) |
-
-문제 발생 시: 저장소 이슈 트래커를 통해 재현 절차 · 환경 · 로그를 첨부해 주세요.
+자세한 책임 범위는 [`CONTRIBUTING.md`](CONTRIBUTING.md)와 `docs/RELEASE-NOTES.md`의 변경 이력을 참고하세요.
 
 ## 추가 문서 / Further Documentation
 
-| 문서 | 경로 | 내용 |
-| --- | --- | --- |
-| 빠른 시작 | [`docs/QUICK-START.md`](docs/QUICK-START.md) | 5 분 설치 가이드 |
-| 배포 가이드 | [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) | 환경별 배포 절차 |
-| 릴리스 노트 | [`docs/RELEASE-NOTES.md`](docs/RELEASE-NOTES.md) | 버전별 변경 사항 |
-| 레거시 정리 보고서 | [`docs/LEGACY-CLEANUP-REPORT.md`](docs/LEGACY-CLEANUP-REPORT.md) | 정리 이력 |
-| XWiki 알림 저장소 가이드 | [`docs/ALERT-REPOSITORY-XWIKI.md`](docs/ALERT-REPOSITORY-XWIKI.md) | XWiki 연동 메모 |
-| 데모 | [`demo/README.md`](demo/README.md) | 데모 자산 안내 |
-| 아키텍처 스냅샷 | [`resume/ARCHITECTURE.md`](resume/ARCHITECTURE.md) | 이전 아키텍처(참고용) |
-| API 스냅샷 | [`resume/API.md`](resume/API.md) | 이전 API 메모(참고용) |
-| 트러블슈팅 | [`resume/TROUBLESHOOTING.md`](resume/TROUBLESHOOTING.md) | 알려진 이슈 |
+| 문서 | 경로 |
+| --- | --- |
+| 빠른 시작 | [`docs/QUICK-START.md`](docs/QUICK-START.md) |
+| 배포 가이드 | [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) |
+| 레거시 정리 보고서 | [`docs/LEGACY-CLEANUP-REPORT.md`](docs/LEGACY-CLEANUP-REPORT.md) |
+| 릴리스 노트 | [`docs/RELEASE-NOTES.md`](docs/RELEASE-NOTES.md) |
+| 알림 저장소 XWiki | [`docs/ALERT-REPOSITORY-XWIKI.md`](docs/ALERT-REPOSITORY-XWIKI.md) |
+| 아키텍처 | [`resume/ARCHITECTURE.md`](resume/ARCHITECTURE.md) |
+| API 명세 | [`resume/API.md`](resume/API.md) |
+| 배포(이관) | [`resume/DEPLOYMENT.md`](resume/DEPLOYMENT.md) |
+| 트러블슈팅 | [`resume/TROUBLESHOOTING.md`](resume/TROUBLESHOOTING.md) |
+| 데모 | [`demo/README.md`](demo/README.md) |
 
 ## 라이선스 / License
 
-이 프로젝트의 라이선스 조건은 저장소 최상위 [`LICENSE`](LICENSE) 파일을 따릅니다. 배포 및 수정 시 해당 파일의 조항을 우선 검토하세요.
+본 저장소는 [`LICENSE`](LICENSE) 파일에 명시된 라이선스를 따릅니다. 외부에 번들된 `urllib3`, `charset_normalizer`, `idna` 등 서드파티 라이브러리는 각 `dist-info/` 하위의 라이선스 표기를 그대로 유지합니다.
